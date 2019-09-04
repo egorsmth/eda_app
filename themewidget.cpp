@@ -68,6 +68,8 @@ ThemeWidget::ThemeWidget(QWidget *parent) :
 //    populateAnimationBox();
 //    populateLegendBox();
 
+    populateModeBox();
+
     //create charts
 
     QChartView *chartView;
@@ -143,6 +145,13 @@ DataTable ThemeWidget::generateRandomData(int listCount, int valueMax, int value
     }
 
     return dataTable;
+}
+
+void ThemeWidget::populateModeBox()
+{
+    // add items to theme combobox
+    m_ui->themeComboBox->addItem("Graph", 1);
+    m_ui->themeComboBox->addItem("Graph*", 2);
 }
 
 //void ThemeWidget::populateThemeBox()
@@ -380,55 +389,58 @@ QChart *ThemeWidget::createScatterChart() const
 
 void ThemeWidget::updateUI()
 {
-    //![6]
-    QChart::ChartTheme theme = static_cast<QChart::ChartTheme>(
-                m_ui->themeComboBox->itemData(m_ui->themeComboBox->currentIndex()).toInt());
-    //![6]
+//    //![6]
+//    QChart::ChartTheme theme = static_cast<QChart::ChartTheme>(
+//                m_ui->themeComboBox->itemData(m_ui->themeComboBox->currentIndex()).toInt());
+//    //![6]
     const auto charts = m_charts;
-    if (!m_charts.isEmpty() && m_charts.at(0)->chart()->theme() != theme) {
-        for (QChartView *chartView : charts) {
-            //![7]
-            chartView->chart()->setTheme(theme);
-            //![7]
-        }
+//    if (!m_charts.isEmpty() && m_charts.at(0)->chart()->theme() != theme) {
+//        for (QChartView *chartView : charts) {
+//            //![7]
+//            chartView->chart()->setTheme(theme);
+//            //![7]
+//        }
 
-        // Set palette colors based on selected theme
-        //![8]
-        QPalette pal = window()->palette();
-        if (theme == QChart::ChartThemeLight) {
-            pal.setColor(QPalette::Window, QRgb(0xf0f0f0));
-            pal.setColor(QPalette::WindowText, QRgb(0x404044));
-        //![8]
-        } else if (theme == QChart::ChartThemeDark) {
-            pal.setColor(QPalette::Window, QRgb(0x121218));
-            pal.setColor(QPalette::WindowText, QRgb(0xd6d6d6));
-        } else if (theme == QChart::ChartThemeBlueCerulean) {
-            pal.setColor(QPalette::Window, QRgb(0x40434a));
-            pal.setColor(QPalette::WindowText, QRgb(0xd6d6d6));
-        } else if (theme == QChart::ChartThemeBrownSand) {
-            pal.setColor(QPalette::Window, QRgb(0x9e8965));
-            pal.setColor(QPalette::WindowText, QRgb(0x404044));
-        } else if (theme == QChart::ChartThemeBlueNcs) {
-            pal.setColor(QPalette::Window, QRgb(0x018bba));
-            pal.setColor(QPalette::WindowText, QRgb(0x404044));
-        } else if (theme == QChart::ChartThemeHighContrast) {
-            pal.setColor(QPalette::Window, QRgb(0xffab03));
-            pal.setColor(QPalette::WindowText, QRgb(0x181818));
-        } else if (theme == QChart::ChartThemeBlueIcy) {
-            pal.setColor(QPalette::Window, QRgb(0xcee7f0));
-            pal.setColor(QPalette::WindowText, QRgb(0x404044));
-        } else {
-            pal.setColor(QPalette::Window, QRgb(0xf0f0f0));
-            pal.setColor(QPalette::WindowText, QRgb(0x404044));
-        }
-        window()->setPalette(pal);
-    }
+//        // Set palette colors based on selected theme
+//        //![8]
+//        QPalette pal = window()->palette();
+//        if (theme == QChart::ChartThemeLight) {
+//            pal.setColor(QPalette::Window, QRgb(0xf0f0f0));
+//            pal.setColor(QPalette::WindowText, QRgb(0x404044));
+//        //![8]
+//        } else if (theme == QChart::ChartThemeDark) {
+//            pal.setColor(QPalette::Window, QRgb(0x121218));
+//            pal.setColor(QPalette::WindowText, QRgb(0xd6d6d6));
+//        } else if (theme == QChart::ChartThemeBlueCerulean) {
+//            pal.setColor(QPalette::Window, QRgb(0x40434a));
+//            pal.setColor(QPalette::WindowText, QRgb(0xd6d6d6));
+//        } else if (theme == QChart::ChartThemeBrownSand) {
+//            pal.setColor(QPalette::Window, QRgb(0x9e8965));
+//            pal.setColor(QPalette::WindowText, QRgb(0x404044));
+//        } else if (theme == QChart::ChartThemeBlueNcs) {
+//            pal.setColor(QPalette::Window, QRgb(0x018bba));
+//            pal.setColor(QPalette::WindowText, QRgb(0x404044));
+//        } else if (theme == QChart::ChartThemeHighContrast) {
+//            pal.setColor(QPalette::Window, QRgb(0xffab03));
+//            pal.setColor(QPalette::WindowText, QRgb(0x181818));
+//        } else if (theme == QChart::ChartThemeBlueIcy) {
+//            pal.setColor(QPalette::Window, QRgb(0xcee7f0));
+//            pal.setColor(QPalette::WindowText, QRgb(0x404044));
+//        } else {
+//            pal.setColor(QPalette::Window, QRgb(0xf0f0f0));
+//            pal.setColor(QPalette::WindowText, QRgb(0x404044));
+//        }
+//        window()->setPalette(pal);
+//    }
 
     // Update antialiasing
 //    //![11]
 //    bool checked = m_ui->antialiasCheckBox->isChecked();
 //    for (QChartView *chart : charts)
 //        chart->setRenderHint(QPainter::Antialiasing, checked);
+
+    for (QChartView *chart : charts)
+        chart->setRenderHint(QPainter::Antialiasing, true);
 //    //![11]
 
     // Update animation options

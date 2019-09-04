@@ -62,6 +62,7 @@ private Q_SLOTS:
 
 private:
     DataTable generateRandomData(int listCount, int valueMax, int valueCount) const;
+    void populateModeBox();
 //    void populateThemeBox();
 //    void populateAnimationBox();
 //    void populateLegendBox();
