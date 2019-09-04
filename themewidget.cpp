@@ -82,13 +82,14 @@ ThemeWidget::ThemeWidget(QWidget *parent) :
     }
 
     chartView = new QChartView(createLineChart2(myList));
-    m_ui->gridLayout->addWidget(chartView, 1, 0);
+//    m_ui->gridLayout->addWidget(chartView, 1, 0);
+    m_ui->gridLayout_2->addWidget(chartView);
     m_charts << chartView;
 
     chartView = new QChartView(createLineChart());
     // Funny things happen if the pie slice labels do not fit the screen, so we ignore size policy
-    chartView->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-    m_ui->gridLayout->addWidget(chartView, 1, 1);
+//    chartView->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+    m_ui->gridLayout_4->addWidget(chartView);
     m_charts << chartView;
 
 //    //![5]
@@ -98,11 +99,12 @@ ThemeWidget::ThemeWidget(QWidget *parent) :
 //    m_charts << chartView;
 
     chartView = new QChartView(createLineChart());
-    m_ui->gridLayout->addWidget(chartView, 2, 0);
+    m_ui->gridLayout_5->addWidget(chartView);
     m_charts << chartView;
 
     chartView = new QChartView(createLineChart());
-    m_ui->gridLayout->addWidget(chartView, 2, 1);
+    m_ui->gridLayout_6->addWidget(chartView);
+
     m_charts << chartView;
 
 //    chartView = new QChartView(createScatterChart());
