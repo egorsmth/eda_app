@@ -6,10 +6,11 @@ Model::Model()
 
 }
 
-std::vector<Point> Model::getLine(double k, double b, double start, double end) {
+std::vector<Point> Model::getLine(double k, double b, int n) {
     std::vector<Point> res;
 
-    for (double i = start; i <= end; i++) {
+    double timedelta = 0.1;
+    for (double i = 0; i <= n; i+=timedelta) {
         Point p;
         p.x = i;
         p.y = k*i+b;
@@ -31,10 +32,10 @@ std::vector<Point> Model::getExp(double l, double b, int n) {
     return res;
 }
 
-std::vector<Point> Model::getSin(double start, double end) {
+std::vector<Point> Model::getSin(int n) {
     std::vector<Point> res;
     double timedelta = 0.1;
-    for (double i = start; i <= end; i+=timedelta) {
+    for (double i = 0; i <= n; i+=timedelta) {
         Point p;
         p.x = i;
         p.y = sin(i);

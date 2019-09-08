@@ -72,7 +72,7 @@ private:
 //    QChart *createBarChart(int valueCount) const;
 //    QChart *createPieChart() const;
     QChart *createLineChart() const;
-    QChart *createChart(const DataList &list, const char* name, bool normal) const;
+    QChart *createChart(const DataList &list, const char* name, bool normal, double s) const;
 //    QChart *createSplineChart() const;
 //    QChart *createScatterChart() const;
 

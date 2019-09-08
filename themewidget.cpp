@@ -127,11 +127,10 @@ double normalize(double x, double x_min, double x_max, double s = 5.0) {
     return ((x-x_min)/(x_max-x_min) - 0.5)*2*s;
 }
 
-QChart *ThemeWidget::createChart(const DataList &list, const char* name, bool normal = true) const
+QChart *ThemeWidget::createChart(const DataList &list, const char* name, bool normal = true, double s = 5.0) const
 {
     //![1]
     QChart *chart = new QChart();
-    chart->setTitle("Line chart");
     //![1]
 
     double min_x = DBL_MAX;
@@ -187,41 +186,6 @@ QChart *ThemeWidget::createChart(const DataList &list, const char* name, bool no
     return chart;
 }
 
-QChart *ThemeWidget::createLineChart() const
-{
-    //![1]
-    QChart *chart = new QChart();
-    chart->setTitle("Line chart");
-    //![1]
-
-    //![2]
-    QString name("Series ");
-    int nameIndex = 0;
-    for (const DataList &list : m_dataTable) {
-        QLineSeries *series = new QLineSeries(chart);
-        for (const Data &data : list)
-            series->append(data.first);
-        series->setName(name + QString::number(nameIndex));
-        nameIndex++;
-        chart->addSeries(series);
-    }
-    //![2]
-
-    //![3]
-    chart->createDefaultAxes();
-    chart->axes(Qt::Horizontal).first()->setRange(0, m_valueMax);
-    chart->axes(Qt::Vertical).first()->setRange(0, m_valueCount);
-    //![3]
-    //![4]
-    // Add space to label to add space between labels and axis
-    QValueAxis *axisY = qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first());
-    Q_ASSERT(axisY);
-    axisY->setLabelFormat("%.1f  ");
-    //![4]
-
-    return chart;
-}
-
 void clearLayout(QLayout * layout) {
     if (layout->children().isEmpty()) return;
 
@@ -262,20 +226,20 @@ void ThemeWidget::renderModeGraph() {
     QChartView *chartView;
 
     if (!m_charts.isEmpty()) {
-        m_charts[0]->setChart(createChart(Model::transformTimeseriesForView(Model::getLine(3, 0, 0, 10)), "line 2"));
-        m_charts[1]->setChart(createChart(Model::transformTimeseriesForView(Model::getLine(-3, 0, 0, 10)), "line 4"));
-        m_charts[2]->setChart(createChart(Model::transformTimeseriesForView(Model::getExp(1, 1, 10)), "exp 5"));
-        m_charts[3]->setChart(createChart(Model::transformTimeseriesForView(Model::getExp(-1, 1, 10)), "-exp 6"));
+        m_charts[0]->setChart(createChart(Model::transformTimeseriesForView(Model::getLine(3, 0, 10)), "line"));
+        m_charts[1]->setChart(createChart(Model::transformTimeseriesForView(Model::getLine(-3, 0, 10)), "-line"));
+        m_charts[2]->setChart(createChart(Model::transformTimeseriesForView(Model::getExp(1, 1, 10)), "exp"));
+        m_charts[3]->setChart(createChart(Model::transformTimeseriesForView(Model::getExp(-1, 1, 10)), "-exp"));
     } else {
-        chartView = new QChartView(createChart(Model::transformTimeseriesForView(Model::getLine(3, 0, 0, 10)), "line 2"));
+        chartView = new QChartView(createChart(Model::transformTimeseriesForView(Model::getLine(3, 0, 10)), "line"));
         m_ui->top_left_graph->addWidget(chartView);
         m_charts << chartView;
 
-        chartView = new QChartView(createChart(Model::transformTimeseriesForView(Model::getLine(-3, 0, 0, 10)), "line 4"));
+        chartView = new QChartView(createChart(Model::transformTimeseriesForView(Model::getLine(-3, 0, 10)), "-line"));
         m_ui->top_right_graph->addWidget(chartView);
         m_charts << chartView;
 
-        chartView = new QChartView(createChart(Model::transformTimeseriesForView(Model::getExp(1, 1, 10)), "exp 5"));
+        chartView = new QChartView(createChart(Model::transformTimeseriesForView(Model::getExp(1, 1, 10)), "exp"));
         m_ui->bottom_left_graph->addWidget(chartView);
         m_charts << chartView;
 
@@ -285,21 +249,38 @@ void ThemeWidget::renderModeGraph() {
     }
 }
 
+std::vector<Point> combine(std::vector<Point> a, std::vector<Point> b) {
+    std::vector<Point> res;
+    for (unsigned long i = 0; i < a.size(); i++) {
+        Point p;
+        p.x = a[i].x;
+        p.y = a[i].y * b[i].y;
+        res.push_back(p);
+    }
+
+    return res;
+}
+
 void ThemeWidget::renderModeGraphStar() {
     //create charts
     QChartView *chartView;
 
     if (!m_charts.isEmpty()) {
-        m_charts[0]->setChart(createChart(Model::transformTimeseriesForView(Model::getLine(-3, 0, 0, 10)), "line 2"));
-        m_charts[1]->setChart(createChart(Model::transformTimeseriesForView(Model::getLine(-6, 0, 0, 10)), "line 4"));
-        m_charts[2]->setChart(createChart(Model::transformTimeseriesForView(Model::getExp(1, 6, 10)), "exp 5"));
-        m_charts[3]->setChart(createChart(Model::transformTimeseriesForView(Model::getExp(-5, 1, 10)), "-exp 6"));
+        std::vector<Point> a = Model::getLine(-0.5, 0, 10);
+        std::vector<Point> b = Model::getSin(10);
+        std::vector<Point> c = Model::getExp(0.4, 1, 10);
+        std::vector<Point> d = combine(combine(b, c), a);
+
+        m_charts[0]->setChart(createChart(Model::transformTimeseriesForView(a), "line"));
+        m_charts[1]->setChart(createChart(Model::transformTimeseriesForView(b), "sin"));
+        m_charts[2]->setChart(createChart(Model::transformTimeseriesForView(c), "exp"));
+        m_charts[3]->setChart(createChart(Model::transformTimeseriesForView(d), "line * sin * exp"));
     } else {
-        chartView = new QChartView(createChart(Model::transformTimeseriesForView(Model::getLine(3, 0, 0, 10)), "line 2"));
+        chartView = new QChartView(createChart(Model::transformTimeseriesForView(Model::getLine(3, 0, 10)), "line 2"));
         m_ui->top_left_graph->addWidget(chartView);
         m_charts << chartView;
 
-        chartView = new QChartView(createChart(Model::transformTimeseriesForView(Model::getLine(-3, 0, 0, 10)), "line 4"));
+        chartView = new QChartView(createChart(Model::transformTimeseriesForView(Model::getLine(-3, 0, 10)), "line 4"));
         m_ui->top_right_graph->addWidget(chartView);
         m_charts << chartView;
 
