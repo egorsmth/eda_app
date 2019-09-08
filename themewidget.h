@@ -32,6 +32,7 @@
 
 #include <QtWidgets/QWidget>
 #include <QtCharts/QChartGlobal>
+#include <qlayoutitem.h>
 
 QT_BEGIN_NAMESPACE
 class QComboBox;
@@ -71,7 +72,7 @@ private:
 //    QChart *createBarChart(int valueCount) const;
 //    QChart *createPieChart() const;
     QChart *createLineChart() const;
-    QChart *createLineChart2(const DataList &list) const;
+    QChart *createChart(const DataList &list, const char* name, bool normal) const;
 //    QChart *createSplineChart() const;
 //    QChart *createScatterChart() const;
 
@@ -80,9 +81,16 @@ private:
     int m_valueMax;
     int m_valueCount;
     QList<QChartView *> m_charts;
+    QList<QObject *> m_widgets;
+    QList<QLayoutItem *> m_items;
     DataTable m_dataTable;
 
     Ui_ThemeWidgetForm *m_ui;
+
+    void clearMode();
+
+    void renderModeGraph();
+    void renderModeGraphStar();
 };
 
 #endif /* THEMEWIDGET_H */
