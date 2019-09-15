@@ -121,6 +121,7 @@ void ThemeWidget::populateModeBox()
     // add items to theme combobox
     m_ui->themeComboBox->addItem("Graph", 1);
     m_ui->themeComboBox->addItem("Graph*", 2);
+    m_ui->themeComboBox->addItem("In class", 3);
 }
 
 double normalize(double x, double x_min, double x_max, double s = 5.0) {
@@ -160,7 +161,7 @@ QChart *ThemeWidget::createChart(const DataList &list, const char* name, bool no
         QPointF p = data.first;
         QPointF *normalized;
         if (normal) {
-            normalized = new QPointF(normalize(p.x(), min_x, max_x, 9.5), normalize(p.y(), min_y, max_y, 9.5));
+            normalized = new QPointF(normalize(p.x(), min_x, max_x, s), normalize(p.y(), min_y, max_y, s));
         } else {
             normalized = new QPointF(p.x(), p.y());
         }
@@ -173,8 +174,8 @@ QChart *ThemeWidget::createChart(const DataList &list, const char* name, bool no
 
     //![3]
     chart->createDefaultAxes();
-    chart->axes(Qt::Horizontal).first()->setRange(-10, 10);
-    chart->axes(Qt::Vertical).first()->setRange(-10, 10);
+    chart->axes(Qt::Horizontal).first()->setRange(-s, s);
+    chart->axes(Qt::Vertical).first()->setRange(-s, s);
     //![3]
     //![4]
     // Add space to label to add space between labels and axis
@@ -220,6 +221,7 @@ void ThemeWidget::clearMode() {
 
 const int MODE_GRAPH = 1;
 const int MODE_GRAPH_STAR = 2;
+const int IN_CLASS = 3;
 
 void ThemeWidget::renderModeGraph() {
     //create charts
@@ -259,6 +261,19 @@ std::vector<Point> combine(std::vector<Point> a, std::vector<Point> b) {
     }
 
     return res;
+}
+
+void ThemeWidget::renderModeInClass() {
+    std::vector<Point> a = Model::getRandom(10, 1.0);
+    std::vector<Point> b = Model::getRandomSpikes(10, 3, 3, 1.1);
+    std::vector<Point> c = Model::getSpikes(10, 3, 3);
+    std::vector<Point> d = combine(combine(b, c), a);
+
+    m_charts[0]->setChart(createChart(Model::transformTimeseriesForView(a), "random", true, 1.0));
+
+    m_charts[1]->setChart(createChart(Model::transformTimeseriesForView(b), "getRandomSpikes"));
+    m_charts[2]->setChart(createChart(Model::transformTimeseriesForView(c), "getSpikes"));
+    m_charts[3]->setChart(createChart(Model::transformTimeseriesForView(d), "line * sin * exp"));
 }
 
 void ThemeWidget::renderModeGraphStar() {
@@ -305,6 +320,9 @@ void ThemeWidget::updateUI()
         break;
     case MODE_GRAPH_STAR:
         renderModeGraphStar();
+        break;
+    case IN_CLASS:
+        renderModeInClass();
         break;
     default:
         printf("Unknown mode %d\n", mode);

@@ -91,6 +91,7 @@ private:
 
     void renderModeGraph();
     void renderModeGraphStar();
+    void renderModeInClass();
 };
 
 #endif /* THEMEWIDGET_H */
