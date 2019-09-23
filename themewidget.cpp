@@ -173,9 +173,21 @@ QChart *ThemeWidget::createChart(const DataList &list, const char* name, bool no
 
 
     //![3]
+
+    double left_h = -s;
+    double right_h = s;
+    double top_v = s;
+    double bot_v = -s;
+
+    if (!normal) {
+        left_h = min_x - 2;
+        right_h = max_x + 2;
+        top_v = max_y + 2;
+        bot_v = min_y - 2;
+    }
     chart->createDefaultAxes();
-    chart->axes(Qt::Horizontal).first()->setRange(-s, s);
-    chart->axes(Qt::Vertical).first()->setRange(-s, s);
+    chart->axes(Qt::Horizontal).first()->setRange(left_h, right_h);
+    chart->axes(Qt::Vertical).first()->setRange(bot_v, top_v);
     //![3]
     //![4]
     // Add space to label to add space between labels and axis
@@ -263,18 +275,7 @@ std::vector<Point> combine(std::vector<Point> a, std::vector<Point> b) {
     return res;
 }
 
-void ThemeWidget::renderModeInClass() {
-    std::vector<Point> a = Model::getRandom(10, 1.0);
-    std::vector<Point> b = Model::getRandomSpikes(10, 3, 3, 1.1);
-    std::vector<Point> c = Model::getSpikes(10, 3, 3);
-    std::vector<Point> d = combine(combine(b, c), a);
 
-    m_charts[0]->setChart(createChart(Model::transformTimeseriesForView(a), "random", true, 1.0));
-
-    m_charts[1]->setChart(createChart(Model::transformTimeseriesForView(b), "getRandomSpikes"));
-    m_charts[2]->setChart(createChart(Model::transformTimeseriesForView(c), "getSpikes"));
-    m_charts[3]->setChart(createChart(Model::transformTimeseriesForView(d), "line * sin * exp"));
-}
 
 void ThemeWidget::renderModeGraphStar() {
     //create charts
@@ -308,6 +309,25 @@ void ThemeWidget::renderModeGraphStar() {
         m_charts << chartView;
 
     }
+}
+
+void ThemeWidget::renderModeInClass() {
+    std::vector<Point> a = Model::getRandom(100, 0.3);
+    std::vector<Point> b = Model::getRandomSelf(100, 100, 3.4, 1.7, 17);
+    std::vector<Point> c = Model::getSpikes(100, 50, 3);
+    std::vector<Point> d = combine(combine(b, c), a);
+
+    std::pair< std::vector<Point>, std::vector<Point> > f = Model::getAvgsAndVars(a, 5);
+
+    printf("%d\n", Model::isStationar(a, 5, 0.05));
+    printf("%d\n", Model::isStationar(b, 5, 0.05));
+    printf("%d\n", Model::isStationar(c, 5, 0.05));
+
+    m_charts[0]->setChart(createChart(Model::transformTimeseriesForView(a), "random", false));
+
+    m_charts[1]->setChart(createChart(Model::transformTimeseriesForView(f.first), "getRandomSpikes", false));
+    m_charts[2]->setChart(createChart(Model::transformTimeseriesForView(f.second), "getSpikes", false));
+    m_charts[3]->setChart(createChart(Model::transformTimeseriesForView(d), "line * sin * exp", false));
 }
 
 void ThemeWidget::updateUI()

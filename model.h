@@ -23,6 +23,9 @@ public:
     static std::vector<Point> getRandomSpikes(int n, int numSpikes, double s, double max_deviation);
 
     static DataList transformTimeseriesForView(std::vector<Point>);
+
+    static bool isStationar(std::vector<Point> ts, int numIntervals, double delta);
+    static std::pair< std::vector<Point>, std::vector<Point> > getAvgsAndVars(std::vector<Point> ts, int numIntervals);
 };
 
 #endif // MODEL_H
