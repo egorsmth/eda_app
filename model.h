@@ -2,13 +2,7 @@
 #define MODEL_H
 
 #include <vector>
-#include "themewidget.h"
-
-
-struct Point{
-    double x;
-    double y;
-};
+#include "point.h"
 
 class Model
 {
@@ -22,10 +16,10 @@ public:
     static std::vector<Point> getSpikes(int n, int m, double s);
     static std::vector<Point> getRandomSpikes(int n, int numSpikes, double s, double max_deviation);
 
-    static DataList transformTimeseriesForView(std::vector<Point>);
+    static std::vector<Point> getDistribution(int numIntervals, std::vector<Point> ts);
+    static std::vector<Point> getAutoCorrelartionFunc(std::vector<Point> ts);
 
-    static bool isStationar(std::vector<Point> ts, int numIntervals, double delta);
-    static std::pair< std::vector<Point>, std::vector<Point> > getAvgsAndVars(std::vector<Point> ts, int numIntervals);
+    static std::vector<Point> getCorrelartionFunc(std::vector<Point> ts1, std::vector<Point> ts2);
 };
 
 #endif // MODEL_H

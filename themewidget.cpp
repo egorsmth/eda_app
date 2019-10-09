@@ -32,6 +32,9 @@
 #include "ui_themewidget.h"
 #include <model.h>
 #include <float.h>
+#include <transform.h>
+#include <analysis.h>
+
 
 #include <QtCharts/QChartView>
 #include <QtCharts/QPieSeries>
@@ -122,6 +125,14 @@ void ThemeWidget::populateModeBox()
     m_ui->themeComboBox->addItem("Graph", 1);
     m_ui->themeComboBox->addItem("Graph*", 2);
     m_ui->themeComboBox->addItem("In class", 3);
+    m_ui->themeComboBox->addItem("In class 2", 4);
+    m_ui->themeComboBox->addItem("In class 3", 5);
+    m_ui->themeComboBox->addItem("In class 4", 6);
+
+
+    m_ui->themeComboBox->addItem("In class 5 (distr)", 7);
+
+
 }
 
 double normalize(double x, double x_min, double x_max, double s = 5.0) {
@@ -178,13 +189,22 @@ QChart *ThemeWidget::createChart(const DataList &list, const char* name, bool no
     double right_h = s;
     double top_v = s;
     double bot_v = -s;
+    double delta_x = 0;
+    double delta_y = 0;
 
     if (!normal) {
-        left_h = min_x - 2;
-        right_h = max_x + 2;
-        top_v = max_y + 2;
-        bot_v = min_y - 2;
+        double diff_x = max_x - min_x;
+        double diff_y = max_y - min_y;
+        delta_x = diff_x < 2 ? diff_x*0.2 : 2;
+        delta_y = diff_y < 2 ? diff_y*0.2 : 2;
+
+        left_h = min_x - delta_x;
+        right_h = max_x + delta_x;
+        top_v = max_y + delta_y;
+        bot_v = min_y - delta_y;
     }
+
+
     chart->createDefaultAxes();
     chart->axes(Qt::Horizontal).first()->setRange(left_h, right_h);
     chart->axes(Qt::Vertical).first()->setRange(bot_v, top_v);
@@ -234,30 +254,33 @@ void ThemeWidget::clearMode() {
 const int MODE_GRAPH = 1;
 const int MODE_GRAPH_STAR = 2;
 const int IN_CLASS = 3;
-
+const int IN_CLASS2 = 4;
+const int IN_CLASS3 = 5;
+const int IN_CLASS4 = 6;
+const int IN_CLASS5 = 7;
 void ThemeWidget::renderModeGraph() {
     //create charts
     QChartView *chartView;
 
     if (!m_charts.isEmpty()) {
-        m_charts[0]->setChart(createChart(Model::transformTimeseriesForView(Model::getLine(3, 0, 10)), "line"));
-        m_charts[1]->setChart(createChart(Model::transformTimeseriesForView(Model::getLine(-3, 0, 10)), "-line"));
-        m_charts[2]->setChart(createChart(Model::transformTimeseriesForView(Model::getExp(1, 1, 10)), "exp"));
-        m_charts[3]->setChart(createChart(Model::transformTimeseriesForView(Model::getExp(-1, 1, 10)), "-exp"));
+        m_charts[0]->setChart(createChart(transform::transformTimeseriesForView(Model::getLine(3, 0, 10)), "line"));
+        m_charts[1]->setChart(createChart(transform::transformTimeseriesForView(Model::getLine(-3, 0, 10)), "-line"));
+        m_charts[2]->setChart(createChart(transform::transformTimeseriesForView(Model::getExp(1, 1, 10)), "exp"));
+        m_charts[3]->setChart(createChart(transform::transformTimeseriesForView(Model::getExp(-1, 1, 10)), "-exp"));
     } else {
-        chartView = new QChartView(createChart(Model::transformTimeseriesForView(Model::getLine(3, 0, 10)), "line"));
+        chartView = new QChartView(createChart(transform::transformTimeseriesForView(Model::getLine(3, 0, 10)), "line"));
         m_ui->top_left_graph->addWidget(chartView);
         m_charts << chartView;
 
-        chartView = new QChartView(createChart(Model::transformTimeseriesForView(Model::getLine(-3, 0, 10)), "-line"));
+        chartView = new QChartView(createChart(transform::transformTimeseriesForView(Model::getLine(-3, 0, 10)), "-line"));
         m_ui->top_right_graph->addWidget(chartView);
         m_charts << chartView;
 
-        chartView = new QChartView(createChart(Model::transformTimeseriesForView(Model::getExp(1, 1, 10)), "exp"));
+        chartView = new QChartView(createChart(transform::transformTimeseriesForView(Model::getExp(1, 1, 10)), "exp"));
         m_ui->bottom_left_graph->addWidget(chartView);
         m_charts << chartView;
 
-        chartView = new QChartView(createChart(Model::transformTimeseriesForView(Model::getExp(-1, 1, 10)), "-exp 6"));
+        chartView = new QChartView(createChart(transform::transformTimeseriesForView(Model::getExp(-1, 1, 10)), "-exp 6"));
         m_ui->bottom_right_graph->addWidget(chartView);
         m_charts << chartView;
     }
@@ -287,24 +310,24 @@ void ThemeWidget::renderModeGraphStar() {
         std::vector<Point> c = Model::getExp(0.4, 1, 10);
         std::vector<Point> d = combine(combine(b, c), a);
 
-        m_charts[0]->setChart(createChart(Model::transformTimeseriesForView(a), "line"));
-        m_charts[1]->setChart(createChart(Model::transformTimeseriesForView(b), "sin"));
-        m_charts[2]->setChart(createChart(Model::transformTimeseriesForView(c), "exp"));
-        m_charts[3]->setChart(createChart(Model::transformTimeseriesForView(d), "line * sin * exp"));
+        m_charts[0]->setChart(createChart(transform::transformTimeseriesForView(a), "line"));
+        m_charts[1]->setChart(createChart(transform::transformTimeseriesForView(b), "sin"));
+        m_charts[2]->setChart(createChart(transform::transformTimeseriesForView(c), "exp"));
+        m_charts[3]->setChart(createChart(transform::transformTimeseriesForView(d), "line * sin * exp"));
     } else {
-        chartView = new QChartView(createChart(Model::transformTimeseriesForView(Model::getLine(3, 0, 10)), "line 2"));
+        chartView = new QChartView(createChart(transform::transformTimeseriesForView(Model::getLine(3, 0, 10)), "line 2"));
         m_ui->top_left_graph->addWidget(chartView);
         m_charts << chartView;
 
-        chartView = new QChartView(createChart(Model::transformTimeseriesForView(Model::getLine(-3, 0, 10)), "line 4"));
+        chartView = new QChartView(createChart(transform::transformTimeseriesForView(Model::getLine(-3, 0, 10)), "line 4"));
         m_ui->top_right_graph->addWidget(chartView);
         m_charts << chartView;
 
-        chartView = new QChartView(createChart(Model::transformTimeseriesForView(Model::getExp(1, 1, 10)), "exp 5"));
+        chartView = new QChartView(createChart(transform::transformTimeseriesForView(Model::getExp(1, 1, 10)), "exp 5"));
         m_ui->bottom_left_graph->addWidget(chartView);
         m_charts << chartView;
 
-        chartView = new QChartView(createChart(Model::transformTimeseriesForView(Model::getExp(-1, 1, 10)), "-exp 6"));
+        chartView = new QChartView(createChart(transform::transformTimeseriesForView(Model::getExp(-1, 1, 10)), "-exp 6"));
         m_ui->bottom_right_graph->addWidget(chartView);
         m_charts << chartView;
 
@@ -312,22 +335,117 @@ void ThemeWidget::renderModeGraphStar() {
 }
 
 void ThemeWidget::renderModeInClass() {
-    std::vector<Point> a = Model::getRandom(100, 0.3);
-    std::vector<Point> b = Model::getRandomSelf(100, 100, 3.4, 1.7, 17);
-    std::vector<Point> c = Model::getSpikes(100, 50, 3);
-    std::vector<Point> d = combine(combine(b, c), a);
+    // spikes, shift, avg and var
+    std::vector<Point> a = Model::getRandom(1000, 0.3);
+    std::vector<Point> b = Model::getRandomSelf(1000, 100, 3.4, 1.7, 17);
+    std::vector<Point> c = Model::getSpikes(1000, 5, 3);
 
-    std::pair< std::vector<Point>, std::vector<Point> > f = Model::getAvgsAndVars(a, 5);
+    std::pair< std::vector<Point>, std::vector<Point> > f = analysis::getAvgsAndVars(a, 10);
 
-    printf("%d\n", Model::isStationar(a, 5, 0.05));
-    printf("%d\n", Model::isStationar(b, 5, 0.05));
-    printf("%d\n", Model::isStationar(c, 5, 0.05));
+    printf("%d\n", analysis::isStationar(a, 10, 0.05));
+    printf("%d\n", analysis::isStationar(b, 10, 0.05));
+    printf("%d\n", analysis::isStationar(c, 10, 0.05));
 
-    m_charts[0]->setChart(createChart(Model::transformTimeseriesForView(a), "random", false));
+    m_charts[0]->setChart(createChart(transform::transformTimeseriesForView(a), "random", false));
+    m_charts[1]->setChart(createChart(transform::transformTimeseriesForView(b), "getRandomSelf", false));
+    m_charts[2]->setChart(createChart(transform::transformTimeseriesForView(c), "getSpikes", false));
+    m_charts[3]->setChart(createChart(transform::transformTimeseriesForView(transform::shift(a, 10, 60, 20)), "shift", false));
+}
 
-    m_charts[1]->setChart(createChart(Model::transformTimeseriesForView(f.first), "getRandomSpikes", false));
-    m_charts[2]->setChart(createChart(Model::transformTimeseriesForView(f.second), "getSpikes", false));
-    m_charts[3]->setChart(createChart(Model::transformTimeseriesForView(d), "line * sin * exp", false));
+void ThemeWidget::renderModeInClass2() {
+    // average variance
+    std::vector<Point> a = Model::getRandom(10000, 100.0);
+    std::vector<Point> b = Model::getRandomSelf(1000, 100, 3.4, 1.7, 17);
+    std::vector<Point> c = Model::getSpikes(1000, 5, 3);
+    std::vector<Point> d = Model::getRandomSpikes(1000, 10, 10, 3);
+
+    std::pair< std::vector<Point>, std::vector<Point> > f = analysis::getAvgsAndVars(a, 10);
+
+    printf("%d\n", analysis::isStationar(a, 10, 0.05));
+    printf("%d\n", analysis::isStationar(b, 10, 0.05));
+    printf("%d\n", analysis::isStationar(c, 10, 0.05));
+
+    m_charts[0]->setChart(createChart(transform::transformTimeseriesForView(a), "random", false));
+    m_charts[1]->setChart(createChart(transform::transformTimeseriesForView(f.first), "average", false));
+    m_charts[2]->setChart(createChart(transform::transformTimeseriesForView(f.second), "variance", false));
+    m_charts[3]->setChart(createChart(transform::transformTimeseriesForView(d), "randomspikes", false));
+}
+
+void ThemeWidget::renderModeInClass3() {
+    // additive multiplicative
+    std::vector<Point> a = Model::getRandom(1000, 100.3);
+    std::vector<Point> b = Model::getLine(1.1, 1.1, 1000);
+    std::vector<Point> c = Model::getLine(-1.1, 1300.1, 1000);
+
+    m_charts[0]->setChart(createChart(transform::transformTimeseriesForView(transform::additive(a, b)), "++", false));
+    m_charts[1]->setChart(createChart(transform::transformTimeseriesForView(transform::multiplicative(a, b)), "*+", false));
+    m_charts[2]->setChart(createChart(transform::transformTimeseriesForView(transform::additive(a, c)), "+-", false));
+    m_charts[3]->setChart(createChart(transform::transformTimeseriesForView(transform::multiplicative(a, c)), "*-", false));
+}
+
+void ThemeWidget::renderModeInClass4() {
+    // подавление шума
+    std::vector<Point> a = Model::getRandom(1000, 100.3);
+    std::vector<Point> b = Model::getRandom(1000, 100.3);
+    std::vector<Point> c = Model::getRandom(1000, 100.3);
+    std::vector<Point> d = Model::getRandom(1000, 100.3);
+
+    for (int i = 0; i < 10; ++i) {
+        b = transform::additive(b, Model::getRandom(1000, 100.3));
+    }
+    for (int i = 0; i < 100; ++i) {
+        c = transform::additive(b, Model::getRandom(1000, 100.3));
+    }
+    for (int i = 0; i < 1000; ++i) {
+        d = transform::additive(b, Model::getRandom(1000, 100.3));
+    }
+
+    for (int i = 0; i < 1000; ++i) {
+        Point p;
+        p.x = b[i].x;
+        p.y = b[i].y/10;
+        b[i] = p;
+    }
+
+    for (int i = 0; i < 1000; ++i) {
+        Point p;
+        p.x = c[i].x;
+        p.y = c[i].y/100;
+        c[i] = p;
+    }
+
+    for (int i = 0; i < 1000; ++i) {
+        Point p;
+        p.x = d[i].x;
+        p.y = d[i].y/1000;
+        d[i] = p;
+    }
+
+    printf("%f\n", analysis::getStd(a));
+    printf("%f\n", analysis::getStd(b));
+    printf("%f\n", analysis::getStd(c));
+    printf("%f\n", analysis::getStd(d));
+
+    m_charts[0]->setChart(createChart(transform::transformTimeseriesForView(a), "++", false));
+    m_charts[1]->setChart(createChart(transform::transformTimeseriesForView(b), "*+", false));
+    m_charts[2]->setChart(createChart(transform::transformTimeseriesForView(c), "+-", false));
+    m_charts[3]->setChart(createChart(transform::transformTimeseriesForView(d), "*-", false));
+}
+
+void ThemeWidget::renderModeInClass5() {
+    // additive multiplicative
+    std::vector<Point> a = Model::getRandomSelf(1000, 100, 1.6, 1.3, 13);
+    std::vector<Point> b = Model::getAutoCorrelartionFunc(a);
+
+    std::vector<Point> c = Model::getRandomSelf(1000, 100, 3.4, 1.7, 17);
+    std::vector<Point> d = Model::getCorrelartionFunc(a, c);
+
+
+
+    m_charts[0]->setChart(createChart(transform::transformTimeseriesForView(a), "random", false));
+    m_charts[1]->setChart(createChart(transform::transformTimeseriesForView(c), "randomSelf", false));
+    m_charts[2]->setChart(createChart(transform::transformTimeseriesForView(b), "distr random", false));
+    m_charts[3]->setChart(createChart(transform::transformTimeseriesForView(d), "cross", false));
 }
 
 void ThemeWidget::updateUI()
@@ -343,6 +461,18 @@ void ThemeWidget::updateUI()
         break;
     case IN_CLASS:
         renderModeInClass();
+        break;
+    case IN_CLASS2:
+        renderModeInClass2();
+        break;
+    case IN_CLASS3:
+        renderModeInClass3();
+        break;
+    case IN_CLASS4:
+        renderModeInClass4();
+        break;
+    case IN_CLASS5:
+        renderModeInClass5();
         break;
     default:
         printf("Unknown mode %d\n", mode);

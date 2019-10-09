@@ -92,6 +92,10 @@ private:
     void renderModeGraph();
     void renderModeGraphStar();
     void renderModeInClass();
+    void renderModeInClass2();
+    void renderModeInClass3();
+    void renderModeInClass4();
+    void renderModeInClass5();
 };
 
 #endif /* THEMEWIDGET_H */

@@ -2,13 +2,18 @@ QT += charts
 requires(qtConfig(combobox))
 
 HEADERS += \
+    analysis.h \
     model.h \
-    themewidget.h
+    point.h \
+    themewidget.h \
+    transform.h
 
 SOURCES += \
+    analysis.cpp \
     main.cpp \
     model.cpp \
-    themewidget.cpp
+    themewidget.cpp \
+    transform.cpp
 
 target.path = $$[QT_INSTALL_EXAMPLES]/charts/chartthemes
 INSTALLS += target
