@@ -96,6 +96,10 @@ private:
     void renderModeInClass3();
     void renderModeInClass4();
     void renderModeInClass5();
+    void renderModeInClassFourier();
+    void renderModeInClassFourier2();
+    void renderModeInClassFourier4();
+
 };
 
 #endif /* THEMEWIDGET_H */

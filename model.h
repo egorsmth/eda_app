@@ -20,6 +20,8 @@ public:
     static std::vector<Point> getAutoCorrelartionFunc(std::vector<Point> ts);
 
     static std::vector<Point> getCorrelartionFunc(std::vector<Point> ts1, std::vector<Point> ts2);
+
+    static std::vector<Point> fourier(double A, double f, int N, double dt);
 };
 
 #endif // MODEL_H

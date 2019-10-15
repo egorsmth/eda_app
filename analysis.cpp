@@ -6,6 +6,30 @@
 
 analysis::analysis(){}
 
+double NOrderMoment(std::vector<double> vals, double avg, int n) {
+    double sum = 0;
+    for (double v : vals) {
+        sum += pow((avg-v), n);
+    }
+    return sum / vals.size();
+}
+
+double analysis::getAssymetry(std::vector<double> vals, double avg) {
+    return NOrderMoment(vals, avg, 3);
+}
+
+double analysis::getAssymetryCoeff(std::vector<double> vals, double avg) {
+    return getAssymetry(vals, avg) / pow(sqrt(getVariance(vals, avg)), 3);
+}
+
+double analysis::getExcess(std::vector<double> vals, double avg) {
+    return NOrderMoment(vals, avg, 4);
+}
+
+double analysis::getCurtosis(std::vector<double> vals, double avg) {
+    return getExcess(vals, avg) / pow(sqrt(getVariance(vals, avg)), 4) - 3;
+}
+
 double analysis::getAverage(std::vector<double> vals) {
     double sum = 0;
     for (double v : vals) {
@@ -84,3 +108,5 @@ bool analysis::isStationar(std::vector<Point> ts, int numIntervals, double delta
         return true;
     return false;
 }
+
+

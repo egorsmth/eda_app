@@ -14,6 +14,11 @@ public:
 
     static double getAverage(std::vector<double> vals);
     static double getVariance(std::vector<double> vals, double avg);
+
+    static double getAssymetry(std::vector<double> vals, double avg);
+    static double getAssymetryCoeff(std::vector<double> vals, double avg);
+    static double getExcess(std::vector<double> vals, double avg);
+    static double getCurtosis(std::vector<double> vals, double avg);
 };
 
 #endif // ANALYSIS_H

@@ -13,6 +13,9 @@ public:
     static std::vector<Point> additive(std::vector<Point> xs, std::vector<Point> ys);
     static std::vector<Point> multiplicative(std::vector<Point> xs, std::vector<Point> ys);
     static DataList transformTimeseriesForView(std::vector<Point> ts);
+
+    static std::vector<Point> ampSpecter(std::vector<Point> ts);
+
 };
 
 #endif // TRANSFORM_H

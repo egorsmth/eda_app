@@ -206,3 +206,15 @@ std::vector<Point> Model::getCorrelartionFunc(std::vector<Point> ts1, std::vecto
     }
     return res;
 }
+
+
+std::vector<Point> Model::fourier(double A, double f, int N, double dt) {
+    std::vector<Point> res;
+    for (int i = 0; i<N;i++) {
+        Point p;
+        p.x = i;
+        p.y = A * sin(2*M_PI*f*double(i)*dt);
+        res.push_back(p);
+    }
+    return res;
+}

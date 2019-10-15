@@ -128,11 +128,11 @@ void ThemeWidget::populateModeBox()
     m_ui->themeComboBox->addItem("In class 2", 4);
     m_ui->themeComboBox->addItem("In class 3", 5);
     m_ui->themeComboBox->addItem("In class 4", 6);
-
-
     m_ui->themeComboBox->addItem("In class 5 (distr)", 7);
 
-
+    m_ui->themeComboBox->addItem("In class, fourier", 8);
+    m_ui->themeComboBox->addItem("In class, fourier 2", 9);
+    m_ui->themeComboBox->addItem("In class, fourier 4", 10);
 }
 
 double normalize(double x, double x_min, double x_max, double s = 5.0) {
@@ -258,6 +258,9 @@ const int IN_CLASS2 = 4;
 const int IN_CLASS3 = 5;
 const int IN_CLASS4 = 6;
 const int IN_CLASS5 = 7;
+const int IN_CLASS_fourier = 8;
+const int IN_CLASS_fourier2 = 9;
+const int IN_CLASS_fourier4 = 10;
 void ThemeWidget::renderModeGraph() {
     //create charts
     QChartView *chartView;
@@ -448,6 +451,54 @@ void ThemeWidget::renderModeInClass5() {
     m_charts[3]->setChart(createChart(transform::transformTimeseriesForView(d), "cross", false));
 }
 
+
+void ThemeWidget::renderModeInClassFourier() {
+    // additive multiplicative
+    std::vector<Point> a = Model::fourier(100, 11.0, 1000, 0.001);
+    std::vector<Point> b = Model::fourier(100, 110.0, 1000, 0.001);
+
+    std::vector<Point> c = Model::fourier(100, 250.0, 1000, 0.001);
+    std::vector<Point> d = Model::fourier(100, 510.0, 1000, 0.001);
+
+
+
+    m_charts[0]->setChart(createChart(transform::transformTimeseriesForView(a), "random", false));
+    m_charts[1]->setChart(createChart(transform::transformTimeseriesForView(c), "randomSelf", false));
+    m_charts[2]->setChart(createChart(transform::transformTimeseriesForView(b), "distr random", false));
+    m_charts[3]->setChart(createChart(transform::transformTimeseriesForView(d), "cross", false));
+}
+
+void ThemeWidget::renderModeInClassFourier2() {
+    std::vector<Point> a = Model::fourier(100, 11.0, 1000, 0.001);
+    std::vector<Point> b = Model::fourier(100, 110.0, 1000, 0.001);
+
+    std::vector<Point> c = Model::fourier(100, 250.0, 1000, 0.001);
+    std::vector<Point> d = Model::fourier(100, 510.0, 1000, 0.001);
+
+    m_charts[0]->setChart(createChart(transform::transformTimeseriesForView(transform::ampSpecter(a)), "random", false));
+    m_charts[1]->setChart(createChart(transform::transformTimeseriesForView(transform::ampSpecter(b)), "randomSelf", false));
+    m_charts[2]->setChart(createChart(transform::transformTimeseriesForView(transform::ampSpecter(c)), "distr random", false));
+    m_charts[3]->setChart(createChart(transform::transformTimeseriesForView(transform::ampSpecter(d)), "cross", false));
+}
+
+//void ThemeWidget::renderModeInClassFourier3() {
+//// fourier to freq, пперевести из фурье обратно в частоту
+//}
+
+void ThemeWidget::renderModeInClassFourier4() {
+    // TODO доделать тоже самое что фурье ин класс 1 + фурье ин класс 2
+    std::vector<Point> a = Model::fourier(25, 11.0, 1000, 0.001);
+    std::vector<Point> b = Model::fourier(35, 41.0, 1000, 0.001);
+
+    std::vector<Point> c = Model::fourier(30, 141.0, 1000, 0.001);
+    std::vector<Point> d = transform::additive(c, transform::additive(a, b));
+
+    m_charts[0]->setChart(createChart(transform::transformTimeseriesForView(a), "random", false));
+    m_charts[1]->setChart(createChart(transform::transformTimeseriesForView(c), "randomSelf", false));
+    m_charts[2]->setChart(createChart(transform::transformTimeseriesForView(b), "distr random", false));
+    m_charts[3]->setChart(createChart(transform::transformTimeseriesForView(transform::ampSpecter(d)), "cross", false));
+}
+
 void ThemeWidget::updateUI()
 {
     int mode = m_ui->themeComboBox->itemData(m_ui->themeComboBox->currentIndex()).toInt();
@@ -473,6 +524,15 @@ void ThemeWidget::updateUI()
         break;
     case IN_CLASS5:
         renderModeInClass5();
+        break;
+    case IN_CLASS_fourier:
+        renderModeInClassFourier();
+        break;
+    case IN_CLASS_fourier2:
+        renderModeInClassFourier2();
+        break;
+    case IN_CLASS_fourier4:
+        renderModeInClassFourier4();
         break;
     default:
         printf("Unknown mode %d\n", mode);
