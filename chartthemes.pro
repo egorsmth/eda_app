@@ -3,6 +3,7 @@ requires(qtConfig(combobox))
 
 HEADERS += \
     analysis.h \
+    callout.h \
     model.h \
     point.h \
     themewidget.h \
@@ -10,6 +11,7 @@ HEADERS += \
 
 SOURCES += \
     analysis.cpp \
+    callout.cpp \
     main.cpp \
     model.cpp \
     themewidget.cpp \
@@ -20,3 +22,6 @@ INSTALLS += target
 
 FORMS += \
     themewidget.ui
+
+DISTFILES += \
+    res.txt

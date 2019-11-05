@@ -19,6 +19,8 @@ public:
     static double getAssymetryCoeff(std::vector<double> vals, double avg);
     static double getExcess(std::vector<double> vals, double avg);
     static double getCurtosis(std::vector<double> vals, double avg);
+
+    static std::vector<Point> slideAvg(std::vector<Point> ts, int l);
 };
 
 #endif // ANALYSIS_H

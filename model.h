@@ -1,6 +1,8 @@
 #ifndef MODEL_H
 #define MODEL_H
 
+#include <fstream>
+#include <string>
 #include <vector>
 #include "point.h"
 
@@ -14,6 +16,7 @@ public:
     static std::vector<Point> getRandom(int n, double s);
     static std::vector<Point> getRandomSelf(int n, double s, double a, double c, double m);
     static std::vector<Point> getSpikes(int n, int m, double s);
+    static std::vector<Point> getPureSpikes(int n, int m, double s);
     static std::vector<Point> getRandomSpikes(int n, int numSpikes, double s, double max_deviation);
 
     static std::vector<Point> getDistribution(int numIntervals, std::vector<Point> ts);
@@ -22,6 +25,7 @@ public:
     static std::vector<Point> getCorrelartionFunc(std::vector<Point> ts1, std::vector<Point> ts2);
 
     static std::vector<Point> fourier(double A, double f, int N, double dt);
+    static std::vector<Point> fromFile(std::string fileName);
 };
 
 #endif // MODEL_H

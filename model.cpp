@@ -81,6 +81,21 @@ std::vector<Point> Model::getSpikes(int n, int numSpikes, double s) {
     return res;
 }
 
+std::vector<Point> Model::getPureSpikes(int n, int numSpikes, double s) {
+    std::vector<Point> res;
+    for (int i = 0; i< n; i++) {
+        Point p;
+        p.x = i;
+        p.y = 0;
+        res.push_back(p);
+    }
+    for (int i = 0; i < numSpikes; i++) {
+        double idx = QRandomGenerator::global()->bounded(double(res.size()));
+        res[idx].y = QRandomGenerator::global()->bounded(s*10) * (QRandomGenerator::global()->bounded(10) > 5 ? +1 : -1);
+    }
+    return res;
+}
+
 std::vector<Point> Model::getRandomSpikes(int n, int numSpikes, double s, double max_deviation) {
     std::vector<Point> res = getSpikes(n, numSpikes, s);
 
@@ -216,5 +231,33 @@ std::vector<Point> Model::fourier(double A, double f, int N, double dt) {
         p.y = A * sin(2*M_PI*f*double(i)*dt);
         res.push_back(p);
     }
+    return res;
+}
+
+std::vector<Point> Model::fromFile(std::string fileName) {
+    std::ifstream file;
+    std::vector<Point> res;
+    file.open(fileName);
+
+    std::printf("HERE1");
+
+    if(!file)
+    {
+        std::printf("HERE2");
+        exit(1);
+    }
+    int x = 0;
+    std::printf("HERE3");
+    while(!file.eof())
+    {
+        Point p;
+        double y;
+        file >> y;
+        p.y = double(y);
+        p.x = x;
+        x++;
+        res.push_back(p);
+    }
+    file.close();
     return res;
 }

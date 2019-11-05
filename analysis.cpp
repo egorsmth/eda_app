@@ -109,4 +109,22 @@ bool analysis::isStationar(std::vector<Point> ts, int numIntervals, double delta
     return false;
 }
 
+std::vector<Point> analysis::slideAvg(std::vector<Point> ts, int l) {
+   int start = 0;
+   double temp = 0;
+   std::vector<Point> res;
+   while (start < ts.size() - l) {
+       for (int i = 0; i < l; i++) {
+           temp += ts[i+start].y;
+       }
+       Point p;
+       p.y = temp / (double)l;
+       p.x = start;
+       res.push_back(p);
+       temp = 0;
+       start++;
+   }
+   return res;
+}
+
 

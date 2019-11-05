@@ -72,6 +72,8 @@ ThemeWidget::ThemeWidget(QWidget *parent) :
     m_ui(new Ui_ThemeWidgetForm)
 {
     m_ui->setupUi(this);
+    this->setMouseTracking(true);
+
 
     populateModeBox();
 
@@ -133,11 +135,23 @@ void ThemeWidget::populateModeBox()
     m_ui->themeComboBox->addItem("In class, fourier", 8);
     m_ui->themeComboBox->addItem("In class, fourier 2", 9);
     m_ui->themeComboBox->addItem("In class, fourier 4", 10);
+    m_ui->themeComboBox->addItem("In class, ANTI", 11);
+    m_ui->themeComboBox->addItem("In class, slide avg", 12);
+    m_ui->themeComboBox->addItem("In class, spect 1", 13);
+    m_ui->themeComboBox->addItem("In class, spect 2", 14);
+    m_ui->themeComboBox->addItem("In class, spect 3", 15);
+    m_ui->themeComboBox->addItem("In class, spect 4", 16);
+    m_ui->themeComboBox->addItem("In class, spect 6", 17);
+    m_ui->themeComboBox->addItem("Home Work", 18);
+    m_ui->themeComboBox->addItem("In class reverse fourier", 19);
+    m_ui->themeComboBox->addItem("In class window", 20);
+    m_ui->themeComboBox->addItem("HW autocorell", 21);
 }
 
 double normalize(double x, double x_min, double x_max, double s = 5.0) {
     return ((x-x_min)/(x_max-x_min) - 0.5)*2*s;
 }
+
 
 QChart *ThemeWidget::createChart(const DataList &list, const char* name, bool normal = true, double s = 5.0) const
 {
@@ -207,7 +221,20 @@ QChart *ThemeWidget::createChart(const DataList &list, const char* name, bool no
 
     chart->createDefaultAxes();
     chart->axes(Qt::Horizontal).first()->setRange(left_h, right_h);
+    qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first())->setTickCount(11);
+    qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first())->setMinorTickCount(4);
     chart->axes(Qt::Vertical).first()->setRange(bot_v, top_v);
+    qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first())->setTickCount(11);
+    qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first())->setMinorTickCount(4);
+
+
+
+    //    QValueAxis *axisX = new QValueAxis;
+//    axisX->setRange(10, 20.5);
+//    axisX->setTickCount(10);
+//    axisX->setLabelFormat("%.2f");
+//    chartView->chart()->setAxisX(axisX, series);
+
     //![3]
     //![4]
     // Add space to label to add space between labels and axis
@@ -215,7 +242,7 @@ QChart *ThemeWidget::createChart(const DataList &list, const char* name, bool no
     Q_ASSERT(axisY);
     axisY->setLabelFormat("%.1f  ");
     //![4]
-
+    chart->setAcceptHoverEvents(true);
     return chart;
 }
 
@@ -261,6 +288,18 @@ const int IN_CLASS5 = 7;
 const int IN_CLASS_fourier = 8;
 const int IN_CLASS_fourier2 = 9;
 const int IN_CLASS_fourier4 = 10;
+const int IN_CLASS_ANTISHIFT_ANTISPYKES = 11;
+const int IN_CLASS_SLIDE_AVG = 12;
+const int IN_CLASS_SPEC_ANALYS = 13;
+const int IN_CLASS_SPEC_ANALYS2 = 14;
+const int IN_CLASS_SPEC_ANALYS3 = 15;
+const int IN_CLASS_SPEC_ANALYS4 = 16;
+const int IN_CLASS_SPEC_ANALYS5 = 17;
+const int HOME_WORK = 18;
+const int IN_CLASS_REVERSE_FOURIER = 19;
+const int IN_CLASS_WINDOW = 20;
+const int HW_AUTOCORELL = 21;
+
 void ThemeWidget::renderModeGraph() {
     //create charts
     QChartView *chartView;
@@ -499,6 +538,160 @@ void ThemeWidget::renderModeInClassFourier4() {
     m_charts[3]->setChart(createChart(transform::transformTimeseriesForView(transform::ampSpecter(d)), "cross", false));
 }
 
+void ThemeWidget::renderModeInClassAntiShiftANtiSpykes() {
+
+    std::vector<Point> a = Model::getRandom(1000, 10);
+    std::vector<Point> b = Model::getSpikes(1000, 8, 100);
+    std::vector<Point> d = transform::shift(a, 1, 1000, 10000);
+
+
+    m_charts[0]->setChart(createChart(transform::transformTimeseriesForView(b), "original spiked", false));
+    m_charts[1]->setChart(createChart(transform::transformTimeseriesForView(d), "original shifted", false));
+
+    m_charts[2]->setChart(createChart(transform::transformTimeseriesForView(transform::antiShift(d)), "antishift", false));
+    m_charts[3]->setChart(createChart(transform::transformTimeseriesForView(transform::antiSpike(b, 110)), "antispike", false));
+}
+
+void ThemeWidget::renderModeInClassSlideAvg() {
+
+    std::vector<Point> d = Model::getRandom(1000, 10);
+    std::vector<Point> c = Model::getLine(1.5, 10, 1000);
+    std::vector<Point> b = analysis::slideAvg(transform::additive(d, c), 10);
+
+    m_charts[0]->setChart(createChart(transform::transformTimeseriesForView(transform::additive(d, c)), "original", false));
+    m_charts[1]->setChart(createChart(transform::transformTimeseriesForView(c), "original", false));
+
+    m_charts[2]->setChart(createChart(transform::transformTimeseriesForView(b), "slide", false));
+    m_charts[3]->setChart(createChart(transform::transformTimeseriesForView(transform::additive(b, transform::additive(d, c), true)), "antispike", false));
+}
+
+void ThemeWidget::renderModeInClassSpectrAnalysis() {
+
+    std::vector<Point> a = Model::fourier(10, 15, 1000, 0.001);
+    std::vector<Point> b = Model::getLine(0, 1000, 1000);
+
+    m_charts[0]->setChart(createChart(transform::transformTimeseriesForView(transform::ampSpecter(a)), "original", false));
+    m_charts[1]->setChart(createChart(transform::transformTimeseriesForView(transform::ampSpecter(transform::additive(a, b))), "original", false));
+
+    m_charts[2]->setChart(createChart(transform::transformTimeseriesForView(a), "slide", false));
+    m_charts[3]->setChart(createChart(transform::transformTimeseriesForView(transform::additive(a, b)), "antispike", false));
+}
+
+void ThemeWidget::renderModeInClassSpectrAnalysis2() {
+
+    std::vector<Point> a = Model::fourier(10, 15, 1000, 0.001);
+    std::vector<Point> b = Model::getLine(0, 1000, 1000);
+    std::vector<Point> c = transform::additive(a, b);
+
+    m_charts[0]->setChart(createChart(transform::transformTimeseriesForView(transform::ampSpecter(c)), "original", false));
+    m_charts[1]->setChart(createChart(transform::transformTimeseriesForView(transform::ampSpecter(transform::antiShift(c))), "original", false));
+
+    m_charts[2]->setChart(createChart(transform::transformTimeseriesForView(c), "slide", false));
+    m_charts[3]->setChart(createChart(transform::transformTimeseriesForView(transform::antiShift(c)), "antispike", false));
+}
+
+void ThemeWidget::renderModeInClassSpectrAnalysis3() {
+
+    std::vector<Point> a = Model::fourier(10, 15, 1000, 0.001);
+    std::vector<Point> b = Model::getLine(0.9, 0, 1000);
+    std::vector<Point> c = transform::additive(a, b);
+    std::vector<Point> antiTrend = analysis::slideAvg(c, 6);
+
+    m_charts[0]->setChart(createChart(transform::transformTimeseriesForView(transform::ampSpecter(c)), "original", false));
+    m_charts[1]->setChart(createChart(transform::transformTimeseriesForView(transform::ampSpecter(transform::antiShift(transform::additive(antiTrend, c, true)))), "original", false));
+
+    m_charts[2]->setChart(createChart(transform::transformTimeseriesForView(c), "slide", false));
+    m_charts[3]->setChart(createChart(transform::transformTimeseriesForView(transform::additive(antiTrend, c, true)), "antispike", false));
+}
+
+void ThemeWidget::renderModeInClassSpectrAnalysis4() {
+
+    std::vector<Point> a = Model::getRandom(1000, 10);
+    std::vector<Point> b = Model::getPureSpikes(1000, 20, 100);
+    std::vector<Point> c = transform::ampSpecter(a);
+    std::vector<Point> d = transform::ampSpecter(b);
+
+    m_charts[0]->setChart(createChart(transform::transformTimeseriesForView(a), "a", false));
+    m_charts[1]->setChart(createChart(transform::transformTimeseriesForView(b), "b", false));
+
+    m_charts[2]->setChart(createChart(transform::transformTimeseriesForView(c), "c", false));
+    m_charts[3]->setChart(createChart(transform::transformTimeseriesForView(d), "d", false));
+}
+
+void ThemeWidget::renderModeInClassSpectrAnalysis5() {
+
+    std::vector<Point> a = Model::getRandom(1000, 30);
+    std::vector<Point> b = Model::getPureSpikes(1000, 20, 100);
+    std::vector<Point> c = transform::additive(Model::fourier(10, 15, 1000, 0.001), a);
+    std::vector<Point> d = transform::additive(Model::fourier(10, 15, 1000, 0.001), b);
+
+    m_charts[0]->setChart(createChart(transform::transformTimeseriesForView(c), "a", false));
+    m_charts[1]->setChart(createChart(transform::transformTimeseriesForView(d), "b", false));
+
+    m_charts[2]->setChart(createChart(transform::transformTimeseriesForView(transform::ampSpecter(c)), "c", false));
+    m_charts[3]->setChart(createChart(transform::transformTimeseriesForView(transform::ampSpecter(d)), "d", false));
+}
+
+void ThemeWidget::renderModeHomeWork() {
+
+    std::vector<Point> a = transform::additive(Model::fourier(10, 5, 1000, 0.001), transform::additive(Model::fourier(63, 55, 1000, 0.001), Model::fourier(15, 250, 1000, 0.001)));
+    std::vector<Point> b = transform::antiShift( Model::fromFile("/home/matt/polytech/experimental data analysys/app/res.txt") );
+    std::vector<Point> antiTrend1 = analysis::slideAvg(b, 4);
+    std::vector<Point> antiTrend2 = analysis::slideAvg(b, 8);
+    std::vector<Point> antiTrend3 = analysis::slideAvg(b, 12);
+    std::vector<Point> c = b;
+
+
+    m_charts[0]->setChart(createChart(transform::transformTimeseriesForView(b), "antiTrend", false));
+
+    std::vector<Point> res = transform::ampSpecter(c);
+    for (Point p : res) {
+        printf("%f:%f\n", p.x, p.y);
+    }
+    m_charts[1]->setChart(createChart(transform::transformTimeseriesForView(transform::reverseFourier(transform::ampSpecter(c, false, false))), "f 26 200", false));
+
+    m_charts[2]->setChart(createChart(transform::transformTimeseriesForView(transform::ampSpecter(a)), "f spectr", false));
+    m_charts[3]->setChart(createChart(transform::transformTimeseriesForView(res), "anti trend spectr", false));
+}
+
+void ThemeWidget::renderReverseFourier() {
+    std::vector<Point> a = Model::fourier(30, 5, 1000, 0.001);
+    std::vector<Point> c = transform::reverseFourier(transform::ampSpecter(a, false, false));
+    std::vector<Point> d = transform::ampSpecter(a, true, true);
+
+    m_charts[0]->setChart(createChart(transform::transformTimeseriesForView(a), "aaaaa", false));
+    m_charts[1]->setChart(createChart(transform::transformTimeseriesForView(c), "cccc", false));
+
+    m_charts[2]->setChart(createChart(transform::transformTimeseriesForView(d), "dddd", false));
+    m_charts[3]->setChart(createChart(transform::transformTimeseriesForView(d), "dddd", false));
+}
+
+void ThemeWidget::renderWindow() {
+    std::vector<Point> a = Model::fourier(30, 5, 1000, 0.001);
+    std::vector<Point> b = transform::window(a);
+    std::vector<Point> c = transform::ampSpecter(a, true, true);
+    std::vector<Point> d = transform::ampSpecter(b, true, true);
+
+    m_charts[0]->setChart(createChart(transform::transformTimeseriesForView(a), "aaaaa", false));
+    m_charts[1]->setChart(createChart(transform::transformTimeseriesForView(c), "cccc", false));
+
+    m_charts[2]->setChart(createChart(transform::transformTimeseriesForView(b), "bbbb", false));
+    m_charts[3]->setChart(createChart(transform::transformTimeseriesForView(d), "dddd", false));
+}
+
+void ThemeWidget::renderHomeWorkAutocorrelation() {
+    std::vector<Point> a = Model::fromFile("/home/matt/polytech/experimental data analysys/app/res.txt");
+    std::vector<Point> b = Model::getAutoCorrelartionFunc(a);
+    std::vector<Point> c = Model::fourier(30, 5, 1000, 0.001);
+    std::vector<Point> d = Model::getCorrelartionFunc(a, c);
+
+    m_charts[0]->setChart(createChart(transform::transformTimeseriesForView(a), "aaaaa", false));
+    m_charts[1]->setChart(createChart(transform::transformTimeseriesForView(b), "bbbb", false));
+
+    m_charts[2]->setChart(createChart(transform::transformTimeseriesForView(c), "cccc", false));
+    m_charts[3]->setChart(createChart(transform::transformTimeseriesForView(d), "dddd", false));
+}
+
 void ThemeWidget::updateUI()
 {
     int mode = m_ui->themeComboBox->itemData(m_ui->themeComboBox->currentIndex()).toInt();
@@ -534,14 +727,49 @@ void ThemeWidget::updateUI()
     case IN_CLASS_fourier4:
         renderModeInClassFourier4();
         break;
+    case IN_CLASS_ANTISHIFT_ANTISPYKES:
+        renderModeInClassAntiShiftANtiSpykes();
+        break;
+    case IN_CLASS_SLIDE_AVG:
+        renderModeInClassSlideAvg();
+        break;
+    case IN_CLASS_SPEC_ANALYS:
+        renderModeInClassSpectrAnalysis();
+        break;
+    case IN_CLASS_SPEC_ANALYS2:
+        renderModeInClassSpectrAnalysis2();
+        break;
+    case IN_CLASS_SPEC_ANALYS3:
+        renderModeInClassSpectrAnalysis3();
+        break;
+    case IN_CLASS_SPEC_ANALYS4:
+        renderModeInClassSpectrAnalysis4();
+        break;
+    case IN_CLASS_SPEC_ANALYS5:
+        renderModeInClassSpectrAnalysis5();
+        break;
+    case HOME_WORK:
+        renderModeHomeWork();
+        break;
+    case IN_CLASS_REVERSE_FOURIER:
+        renderReverseFourier();
+        break;
+    case IN_CLASS_WINDOW:
+        renderWindow();
+        break;
+    case HW_AUTOCORELL:
+        renderHomeWorkAutocorrelation();
+        break;
+
     default:
         printf("Unknown mode %d\n", mode);
     }
 
     const auto charts = m_charts;
 
-    for (QChartView *chart : charts)
+    for (QChartView *chart : charts) {
         chart->setRenderHint(QPainter::Antialiasing, true);
+    }
 
     Qt::Alignment alignment(Qt::AlignTop);
 

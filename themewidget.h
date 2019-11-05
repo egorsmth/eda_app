@@ -30,6 +30,8 @@
 #ifndef THEMEWIDGET_H
 #define THEMEWIDGET_H
 
+#include "callout.h"
+
 #include <QtWidgets/QWidget>
 #include <QtCharts/QChartGlobal>
 #include <qlayoutitem.h>
@@ -76,9 +78,12 @@ private:
 //    QChart *createSplineChart() const;
 //    QChart *createScatterChart() const;
 
+    void tooltip(QPointF point, bool state);
+
 private:
     int m_listCount;
     int m_valueMax;
+    Callout* m_tooltip;
     int m_valueCount;
     QList<QChartView *> m_charts;
     QList<QObject *> m_widgets;
@@ -100,6 +105,18 @@ private:
     void renderModeInClassFourier2();
     void renderModeInClassFourier4();
 
+    void renderModeInClassAntiShiftANtiSpykes();
+    void renderModeInClassSlideAvg();
+
+    void renderModeInClassSpectrAnalysis();
+    void renderModeInClassSpectrAnalysis2();
+    void renderModeInClassSpectrAnalysis3();
+    void renderModeInClassSpectrAnalysis4();
+    void renderModeInClassSpectrAnalysis5();
+    void renderModeHomeWork();
+    void renderReverseFourier();
+    void renderWindow();
+    void renderHomeWorkAutocorrelation();
 };
 
 #endif /* THEMEWIDGET_H */
