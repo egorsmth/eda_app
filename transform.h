@@ -21,6 +21,11 @@ public:
     static std::vector<Point> antiSpike(std::vector<Point> ts, double s);
     static std::vector<Point> window(std::vector<Point> ts);
 
+    static std::vector<Point> convulation(std::vector<Point> ts1, std::vector<Point> ts2);
+    static std::vector<Point> lowPassFilter(int m, double dt, double fc);
+    static std::vector<Point> highPassFilter(int m, double dt, double fc);
+    static std::vector<Point> bandPassFilter(int m, double dt, double fc1, double fc2);
+    static std::vector<Point> bandStopFilter(int m, double dt, double fc1, double fc2);
 };
 
 #endif // TRANSFORM_H

@@ -92,6 +92,8 @@ private:
 
     Ui_ThemeWidgetForm *m_ui;
 
+    static std::map< const int , std::function<void()> > getDispTable();
+
     void clearMode();
 
     void renderModeGraph();
@@ -117,6 +119,14 @@ private:
     void renderReverseFourier();
     void renderWindow();
     void renderHomeWorkAutocorrelation();
+
+    void renderInClassFilters1();
+    void renderInClassFilters2();
+    void renderInClassFilters3();
+    void renderInClassFilters4();
+    void renderInClassFilters5();
+    void renderInClassFilters6();
 };
+
 
 #endif /* THEMEWIDGET_H */

@@ -171,3 +171,124 @@ std::vector<Point> transform::antiSpike(std::vector<Point> ts, double s) {
     return res;
 }
 
+std::vector<Point> transform::convulation(std::vector<Point> ts1, std::vector<Point> ts2) {
+    std::vector<Point> res;
+    for (int i = 0; i < ts1.size(); i++) {
+        Point p;
+        p.x = i;
+        double temp = 0;
+        for (int j = 0; j < ts2.size(); j++) {
+            int idx = i - j;
+            if (idx < 0) continue;
+            temp += ts1[idx].y * ts2[j].y;
+        }
+        p.y = temp;
+        res.push_back(p);
+    }
+    return res;
+}
+
+std::vector<Point> transform::lowPassFilter(int m, double dt, double fc) {
+    std::vector<Point> lpw;
+    double arg = 2 * fc * dt;
+    Point p;
+    p.x = 0;
+    p.y = arg;
+    lpw.push_back(p);
+    arg *= M_PI;
+    for (int i = 1; i <= m; i++) {
+        Point p;
+        p.x = i;
+        p.y = sin(arg*i)/ (M_PI*i);
+        lpw.push_back(p);
+    }
+    Point p2;
+    p2.x = m;
+    p2.y = lpw[m].y / 2;
+    lpw[m] = p2;
+
+    std::vector<double> d = {0.35577019, 0.24369830, 0.07211497, 0.00630165};
+
+    double sumg = lpw[0].y;
+    for (int i = 1; i <= m; i++) {
+        double s = d[0];
+        double arg2 = (M_PI*i) / m;
+        for (int k = 1; k <= 3; k++) {
+            s += 2 * d[k] *cos(arg2*k);
+        }
+        Point p;
+        p.x = i;
+        p.y = lpw[i].y * s;
+        lpw[i] = p;
+        sumg += 2 * lpw[i].y;
+    }
+    for (int i = 0; i <= m; i++) {
+        Point p;
+        p.x = i;
+        p.y = lpw[i].y / sumg;
+        lpw[i] = p;
+    }
+
+    std::vector<Point> res;
+    for (int i = m; i >= 0; i--) {
+        Point p;
+        p.x = -1 * (i - m);
+        p.y = lpw[i].y;
+        res.push_back(p);
+    }
+
+    for (int i = 1; i<=m; i++) {
+        Point p;
+        p.x = i+m+1;
+        p.y = lpw[i].y;
+        res.push_back(p);
+    }
+    return res;
+}
+
+std::vector<Point> transform::highPassFilter(int m, double dt, double fc) {
+    std::vector<Point> hpw = lowPassFilter(m, dt, fc);
+    for (int i = 0; i< hpw.size(); i++) {
+        Point p;
+        p.x = i;
+        if (i == m) {
+            p.y = 1 - hpw[i].y;
+        } else {
+            p.y = - hpw[i].y;
+        }
+        hpw[i] = p;
+    }
+    return hpw;
+}
+
+std::vector<Point> transform::bandPassFilter(int m, double dt, double fc1, double fc2 ) {
+    std::vector<Point> hpw1 = lowPassFilter(m, dt, fc1);
+    std::vector<Point> hpw2 = lowPassFilter(m, dt, fc2);
+    std::vector<Point> hpw;
+
+    for (int i = 0; i < hpw1.size(); i++) {
+        Point p;
+        p.x = i;
+        p.y = hpw2[i].y - hpw1[i].y;
+        hpw.push_back(p);
+    }
+    return hpw;
+}
+
+std::vector<Point> transform::bandStopFilter(int m, double dt, double fc1, double fc2 ) {
+    std::vector<Point> hpw1 = lowPassFilter(m, dt, fc1);
+    std::vector<Point> hpw2 = lowPassFilter(m, dt, fc2);
+    std::vector<Point> hpw;
+
+    for (int i = 0; i < hpw1.size(); i++) {
+        Point p;
+        p.x = i;
+        if (i == m) {
+            p.y = 1 + hpw1[i].y - hpw2[i].y;
+        } else {
+            p.y = hpw1[i].y - hpw2[i].y;
+        }
+        hpw.push_back(p);
+    }
+    return hpw;
+}

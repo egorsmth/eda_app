@@ -1,4 +1,5 @@
 #include "model.h"
+#include "transform.h"
 #include <cmath>       /* exp */
 #include <QRandomGenerator>
 #include <time.h>
@@ -259,5 +260,26 @@ std::vector<Point> Model::fromFile(std::string fileName) {
         res.push_back(p);
     }
     file.close();
+    return res;
+}
+
+std::vector<Point> Model::getRegularSpike(double a, double dt, int n) {
+    std::vector<Point> res;
+    for (int i = 0; i < n; i++) {
+        Point p;
+        p.x = i;
+       if (i % 200 == 0) {
+           p.y = a;
+       } else {
+           p.y = 0;
+       }
+       res.push_back(p);
+    }
+    return res;
+}
+std::vector<Point> Model::getHeartbeat(double dt, double f, int n) {
+    std::vector<Point> r = fourier(7, f, n, dt);
+    std::vector<Point> exp = getExp(-0.17, 0.3, n);
+    std::vector<Point> res = transform::multiplicative(r, exp);
     return res;
 }

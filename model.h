@@ -11,6 +11,8 @@ class Model
 public:
     Model();
     static std::vector<Point> getLine(double k, double b, int n);
+    static std::vector<Point> getRegularSpike(double a, double dt, int n);
+    static std::vector<Point> getHeartbeat(double dt, double t, int n);
     static std::vector<Point> getExp(double l, double b, int n);
     static std::vector<Point> getSin(int n);
     static std::vector<Point> getRandom(int n, double s);

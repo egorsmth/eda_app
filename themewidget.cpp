@@ -146,6 +146,14 @@ void ThemeWidget::populateModeBox()
     m_ui->themeComboBox->addItem("In class reverse fourier", 19);
     m_ui->themeComboBox->addItem("In class window", 20);
     m_ui->themeComboBox->addItem("HW autocorell", 21);
+
+    m_ui->themeComboBox->addItem("In class filters 1", 22);
+    m_ui->themeComboBox->addItem("In class filters 2", 23);
+    m_ui->themeComboBox->addItem("In class eq filters 3", 24);
+    m_ui->themeComboBox->addItem("In class eq filters 4 ver 2", 25);
+    m_ui->themeComboBox->addItem("In class eq filters 5", 26);
+    m_ui->themeComboBox->addItem("In class eq filters 6", 27);
+
 }
 
 double normalize(double x, double x_min, double x_max, double s = 5.0) {
@@ -299,6 +307,13 @@ const int HOME_WORK = 18;
 const int IN_CLASS_REVERSE_FOURIER = 19;
 const int IN_CLASS_WINDOW = 20;
 const int HW_AUTOCORELL = 21;
+
+const int IN_CLASS_FILTER1 = 22;
+const int IN_CLASS_FILTER2 = 23;
+const int IN_CLASS_FILTER3 = 24;
+const int IN_CLASS_FILTER4 = 25;
+const int IN_CLASS_FILTER5 = 26;
+const int IN_CLASS_FILTER6 = 27;
 
 void ThemeWidget::renderModeGraph() {
     //create charts
@@ -692,6 +707,74 @@ void ThemeWidget::renderHomeWorkAutocorrelation() {
     m_charts[3]->setChart(createChart(transform::transformTimeseriesForView(d), "dddd", false));
 }
 
+void ThemeWidget::renderInClassFilters1() {
+    std::vector<Point> a = Model::getRegularSpike(120.0, 0.005, 1000);
+//    std::vector<Point> a = Model::getPureSpikes(1000, 10, 10);
+    std::vector<Point> b = Model::getHeartbeat(0.005, 10, 200);
+
+    m_charts[0]->setChart(createChart(transform::transformTimeseriesForView(a), "spec a", false));
+    m_charts[1]->setChart(createChart(transform::transformTimeseriesForView(b), "spec b", false));
+
+    m_charts[2]->setChart(createChart(transform::transformTimeseriesForView(transform::convulation(a, b)), "res", false));
+    m_charts[3]->setChart(createChart(transform::transformTimeseriesForView(transform::ampSpecter(transform::convulation(a, b))), "res spec", false));
+}
+
+void ThemeWidget::renderInClassFilters2() {
+    std::vector<Point> a = Model::getRegularSpike(120.0, 0.005, 1000);
+//    std::vector<Point> a = Model::getPureSpikes(1000, 10, 10);
+    std::vector<Point> b = Model::getHeartbeat(0.005, 10, 200);
+    std::vector<Point> c = Model::getHeartbeat(0.005, 10, 200);
+
+    m_charts[0]->setChart(createChart(transform::transformTimeseriesForView(a), "spec a", false));
+    m_charts[1]->setChart(createChart(transform::transformTimeseriesForView(b), "spec b", false));
+
+    m_charts[2]->setChart(createChart(transform::transformTimeseriesForView(transform::convulation(transform::convulation(a, b), c)), "res", false));
+    m_charts[3]->setChart(createChart(transform::transformTimeseriesForView(transform::ampSpecter(transform::convulation(a, b))), "res spec", false));
+}
+
+void ThemeWidget::renderInClassFilters3() {
+
+    std::vector<Point> a = transform::lowPassFilter(32, 0.001, 60.0);
+    std::vector<Point> b = Model::fromFile("/home/matt/polytech/experimental data analysys/app/res.txt");
+
+    m_charts[0]->setChart(createChart(transform::transformTimeseriesForView(a), "aaaaa", false));
+    m_charts[1]->setChart(createChart(transform::transformTimeseriesForView(transform::ampSpecter(a)), "bbbb", false));
+
+    m_charts[2]->setChart(createChart(transform::transformTimeseriesForView(transform::convulation(b, a)), "cccc", false));
+    m_charts[3]->setChart(createChart(transform::transformTimeseriesForView(transform::ampSpecter(transform::convulation(b, a))), "dddd", false));
+}
+
+void ThemeWidget::renderInClassFilters4() {
+     std::vector<Point> a = transform::highPassFilter(64, 0.001, 50.0);
+     std::vector<Point> b = transform::bandPassFilter(64, 0.001, 20.0, 100.0);
+     std::vector<Point> c = transform::bandStopFilter(64, 0.001, 20.0, 100.0);
+
+     std::vector<Point> d = Model::fromFile("/home/matt/polytech/experimental data analysys/app/res.txt");
+
+    m_charts[0]->setChart(createChart(transform::transformTimeseriesForView(transform::ampSpecter(transform::convulation(d, a))), "high", false));
+    m_charts[1]->setChart(createChart(transform::transformTimeseriesForView(transform::ampSpecter(transform::convulation(d, b))), "band pass", false));
+
+    m_charts[2]->setChart(createChart(transform::transformTimeseriesForView(transform::ampSpecter(transform::convulation(d, c))), "band stop", false));
+    m_charts[3]->setChart(createChart(transform::transformTimeseriesForView(transform::ampSpecter(d)), "original", false));
+}
+
+//void ThemeWidget::renderInClassFilters5() {
+//    m_charts[0]->setChart(createChart(transform::transformTimeseriesForView(a), "aaaaa", false));
+//    m_charts[1]->setChart(createChart(transform::transformTimeseriesForView(b), "bbbb", false));
+
+//    m_charts[2]->setChart(createChart(transform::transformTimeseriesForView(c), "cccc", false));
+//    m_charts[3]->setChart(createChart(transform::transformTimeseriesForView(d), "dddd", false));
+//}
+
+//void ThemeWidget::renderInClassFilters6() {
+//    m_charts[0]->setChart(createChart(transform::transformTimeseriesForView(a), "aaaaa", false));
+//    m_charts[1]->setChart(createChart(transform::transformTimeseriesForView(b), "bbbb", false));
+
+//    m_charts[2]->setChart(createChart(transform::transformTimeseriesForView(c), "cccc", false));
+//    m_charts[3]->setChart(createChart(transform::transformTimeseriesForView(d), "dddd", false));
+//}
+
+
 void ThemeWidget::updateUI()
 {
     int mode = m_ui->themeComboBox->itemData(m_ui->themeComboBox->currentIndex()).toInt();
@@ -760,6 +843,25 @@ void ThemeWidget::updateUI()
     case HW_AUTOCORELL:
         renderHomeWorkAutocorrelation();
         break;
+
+    case IN_CLASS_FILTER1:
+        renderInClassFilters1();
+        break;
+    case IN_CLASS_FILTER2:
+        renderInClassFilters2();
+        break;
+    case IN_CLASS_FILTER3:
+        renderInClassFilters3();
+        break;
+    case IN_CLASS_FILTER4:
+        renderInClassFilters4();
+        break;
+//    case IN_CLASS_FILTER5:
+//        renderInClassFilters5();
+//        break;
+//    case IN_CLASS_FILTER6:
+//        renderInClassFilters6();
+//        break;
 
     default:
         printf("Unknown mode %d\n", mode);
