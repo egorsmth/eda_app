@@ -34,6 +34,7 @@
 #include <float.h>
 #include <transform.h>
 #include <analysis.h>
+#include <audio.h>
 
 
 #include <QtCharts/QChartView>
@@ -751,11 +752,28 @@ void ThemeWidget::renderInClassFilters4() {
 
      std::vector<Point> d = Model::fromFile("/home/matt/polytech/experimental data analysys/app/res.txt");
 
+     AudioFile<double> audioFile;
+     audioFile.load ("/home/matt/polytech/experimental data analysys/app/res.wav");
+     audioFile.printSummary();
+
+     audioFile.setNumSamplesPerChannel(40000);
+     audioFile.save ("/home/matt/polytech/experimental data analysys/app/res2.wav");
+
+     int channel = 0;
+     int numSamples = audioFile.getNumSamplesPerChannel();
+     std::vector<Point> res;
+     for (int i = 0; i < numSamples; i++)
+     {
+         Point p;
+         p.x = i;
+         p.y = audioFile.samples[channel][i];
+         res.push_back(p);
+     }
     m_charts[0]->setChart(createChart(transform::transformTimeseriesForView(transform::ampSpecter(transform::convulation(d, a))), "high", false));
     m_charts[1]->setChart(createChart(transform::transformTimeseriesForView(transform::ampSpecter(transform::convulation(d, b))), "band pass", false));
 
     m_charts[2]->setChart(createChart(transform::transformTimeseriesForView(transform::ampSpecter(transform::convulation(d, c))), "band stop", false));
-    m_charts[3]->setChart(createChart(transform::transformTimeseriesForView(transform::ampSpecter(d)), "original", false));
+    m_charts[3]->setChart(createChart(transform::transformTimeseriesForView(transform::ampSpecter(a)), "original", false));
 }
 
 //void ThemeWidget::renderInClassFilters5() {

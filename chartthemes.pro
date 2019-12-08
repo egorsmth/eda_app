@@ -3,6 +3,7 @@ requires(qtConfig(combobox))
 
 HEADERS += \
     analysis.h \
+    audio.h \
     callout.h \
     model.h \
     point.h \
