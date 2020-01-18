@@ -752,23 +752,7 @@ void ThemeWidget::renderInClassFilters4() {
 
      std::vector<Point> d = Model::fromFile("/home/matt/polytech/experimental data analysys/app/res.txt");
 
-     AudioFile<double> audioFile;
-     audioFile.load ("/home/matt/polytech/experimental data analysys/app/res.wav");
-     audioFile.printSummary();
 
-     audioFile.setNumSamplesPerChannel(40000);
-     audioFile.save ("/home/matt/polytech/experimental data analysys/app/res2.wav");
-
-     int channel = 0;
-     int numSamples = audioFile.getNumSamplesPerChannel();
-     std::vector<Point> res;
-     for (int i = 0; i < numSamples; i++)
-     {
-         Point p;
-         p.x = i;
-         p.y = audioFile.samples[channel][i];
-         res.push_back(p);
-     }
     m_charts[0]->setChart(createChart(transform::transformTimeseriesForView(transform::ampSpecter(transform::convulation(d, a))), "high", false));
     m_charts[1]->setChart(createChart(transform::transformTimeseriesForView(transform::ampSpecter(transform::convulation(d, b))), "band pass", false));
 
@@ -776,13 +760,56 @@ void ThemeWidget::renderInClassFilters4() {
     m_charts[3]->setChart(createChart(transform::transformTimeseriesForView(transform::ampSpecter(a)), "original", false));
 }
 
-//void ThemeWidget::renderInClassFilters5() {
-//    m_charts[0]->setChart(createChart(transform::transformTimeseriesForView(a), "aaaaa", false));
-//    m_charts[1]->setChart(createChart(transform::transformTimeseriesForView(b), "bbbb", false));
+void ThemeWidget::renderInClassFilters5() {
+    AudioFile<double> audioFile;
+    AudioFile<double> audioFileOut;
+    audioFile.load ("/home/matt/polytech/experimental data analysys/app/papa.wav");
+    audioFile.printSummary();
 
-//    m_charts[2]->setChart(createChart(transform::transformTimeseriesForView(c), "cccc", false));
-//    m_charts[3]->setChart(createChart(transform::transformTimeseriesForView(d), "dddd", false));
-//}
+    int channel = 0;
+    int numSamples = audioFile.getNumSamplesPerChannel();
+    std::vector<Point> res;
+    for (int i = 0; i < numSamples; i++)
+    {
+        Point p;
+        p.x = i;
+        p.y = audioFile.samples[channel][i];
+        res.push_back(p);
+    }
+    double rate = 1.0 / (double)audioFile.getSampleRate();
+    std::vector<Point> af = transform::ampSpecter(res);
+
+    AudioFile<double>::AudioBuffer buffer;
+    buffer.resize (1);
+    std::cout << "RATE: " << rate << std::endl;
+
+//    std::vector<Point> a = transform::bandStopFilter(64, rate, 0.03, 0.05);
+//    std::vector<Point> a = transform::highPassFilter(64, rate, 1600);
+//    std::vector<Point> a = transform::lowPassFilter(64, rate, 250);
+    std::vector<Point> a = transform::bandPassFilter(64, rate, 400, 650);
+    std::vector<Point> b = transform::convulation(res, a, rate);
+    //std::vector<Point> c = transform::reverseFourier(b);
+
+
+    // 3. Set number of samples per channel
+    buffer[0].resize (numSamples);
+    for (int j = 0; j < b.size(); j++) {
+        buffer[0][j] = b[j].y * 100;
+    }
+
+    bool ok = audioFileOut.setAudioBuffer (buffer);
+    if (!ok){
+        throw "wtf";
+    }
+    audioFileOut.setSampleRate(audioFile.getSampleRate());
+    audioFileOut.save ("/home/matt/polytech/experimental data analysys/app/out2.wav");
+
+    m_charts[0]->setChart(createChart(transform::transformTimeseriesForView(res), "original", false));
+    m_charts[1]->setChart(createChart(transform::transformTimeseriesForView(af), "specter", false));
+
+    m_charts[2]->setChart(createChart(transform::transformTimeseriesForView(b), "modified", false));
+    m_charts[3]->setChart(createChart(transform::transformTimeseriesForView(transform::ampSpecter(b)), "reverse spector", false));
+}
 
 //void ThemeWidget::renderInClassFilters6() {
 //    m_charts[0]->setChart(createChart(transform::transformTimeseriesForView(a), "aaaaa", false));
@@ -874,9 +901,9 @@ void ThemeWidget::updateUI()
     case IN_CLASS_FILTER4:
         renderInClassFilters4();
         break;
-//    case IN_CLASS_FILTER5:
-//        renderInClassFilters5();
-//        break;
+    case IN_CLASS_FILTER5:
+        renderInClassFilters5();
+        break;
 //    case IN_CLASS_FILTER6:
 //        renderInClassFilters6();
 //        break;

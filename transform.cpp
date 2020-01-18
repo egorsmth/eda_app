@@ -54,15 +54,15 @@ std::vector<Point> transform::multiplicative(std::vector<Point> xs, std::vector<
     return res;
 }
 
-std::vector<Point> transform::ampSpecter(std::vector<Point> ts, bool module, bool view) { // дискретное (прямое) преобразование фурье
+std::vector<Point> transform::ampSpecter(std::vector<Point> ts, bool module, bool view, double mul) { // дискретное (прямое) преобразование фурье
     std::vector<Point> res;
     std::vector<Point> f;
     double N = ts.size();
     for (int m = 0; m < (view ? N / 2 : N); m++) {
         Point p;
         Point pf;
-        p.x = m;
-        pf.x = m;
+        p.x = m * mul;
+        pf.x = m * mul;
         double re = 0;
         double im = 0;
         for (int k = 0; k < N; k++) {
@@ -171,11 +171,11 @@ std::vector<Point> transform::antiSpike(std::vector<Point> ts, double s) {
     return res;
 }
 
-std::vector<Point> transform::convulation(std::vector<Point> ts1, std::vector<Point> ts2) {
+std::vector<Point> transform::convulation(std::vector<Point> ts1, std::vector<Point> ts2, double mul) {
     std::vector<Point> res;
     for (int i = 0; i < ts1.size(); i++) {
         Point p;
-        p.x = i;
+        p.x = i * mul;
         double temp = 0;
         for (int j = 0; j < ts2.size(); j++) {
             int idx = i - j;
