@@ -26,6 +26,12 @@ public:
     static std::vector<Point> highPassFilter(int m, double dt, double fc);
     static std::vector<Point> bandPassFilter(int m, double dt, double fc1, double fc2);
     static std::vector<Point> bandStopFilter(int m, double dt, double fc1, double fc2);
+
+    static std::vector<Point> addZeros(std::vector<Point> ts, int totalLength);
+    static std::vector<ComplexPoint> ampSpectorComplex(std::vector<Point> ts, bool view = true, double mul = 1.0);
+    static std::vector<ComplexPoint> divideComplex(std::vector<ComplexPoint> xs, std::vector<ComplexPoint> ys);
+    static std::vector<Point> complextToPoint(std::vector<ComplexPoint> ts);
+
 };
 
 #endif // TRANSFORM_H

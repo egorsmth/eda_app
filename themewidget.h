@@ -126,6 +126,10 @@ private:
     void renderInClassFilters4();
     void renderInClassFilters5();
     void renderInClassFilters6();
+
+    void renderReverseCardio();
+    void renderRWJpg();
+    void renderJpgCorr();
 };
 
 

@@ -79,6 +79,26 @@ std::vector<Point> transform::ampSpecter(std::vector<Point> ts, bool module, boo
     return f;
 }
 
+std::vector<ComplexPoint> transform::ampSpectorComplex(std::vector<Point> ts, bool view, double mul) {
+    std::vector<ComplexPoint> f;
+    double N = ts.size();
+    for (int m = 0; m < (view ? N / 2 : N); m++) {
+        ComplexPoint pf;
+        pf.x = m * mul;
+        double re = 0;
+        double im = 0;
+        for (int k = 0; k < N; k++) {
+            re += ts[k].y * cos((2* M_PI * m * k) / N);
+            im += ts[k].y * sin((2* M_PI * m * k) / N);
+        }
+        pf.y = re/N;
+        pf.im = im/N;
+        f.push_back(pf);
+    }
+
+    return f;
+}
+
 std::vector<Point> transform::window(std::vector<Point> ts) {
     int size = ts.size();
     int n = 1;
@@ -291,4 +311,50 @@ std::vector<Point> transform::bandStopFilter(int m, double dt, double fc1, doubl
         hpw.push_back(p);
     }
     return hpw;
+}
+
+std::vector<Point> transform::addZeros(std::vector<Point> ts, int totalLength) {
+    if (ts.size() >= totalLength) {
+        return ts;
+    }
+    std::vector<Point> res;
+    for (Point p : ts) {
+        res.push_back(p);
+    }
+
+    for (int i = ts.size(); i < totalLength; i++) {
+        Point p;
+        p.x = i;
+        p.y = 0;
+        res.push_back(p);
+    }
+    return res;
+
+}
+
+
+std::vector<ComplexPoint> transform::divideComplex(std::vector<ComplexPoint> xs, std::vector<ComplexPoint> ys) {
+    std::vector<ComplexPoint> res;
+    for( int i = 0; i < xs.size(); i ++) {
+        ComplexPoint x = xs[i];
+        ComplexPoint y = ys[i];
+        ComplexPoint p;
+        p.x = i;
+        p.y = (x.y*y.y + x.im*y.im) / (y.y*y.y + y.im*y.im);
+        p.im = (y.y * x.im - x.y * y.im) / (y.y*y.y + y.im*y.im);
+        res.push_back(p);
+    }
+
+    return res;
+}
+
+std::vector<Point> transform::complextToPoint(std::vector<ComplexPoint> ts) {
+    std::vector<Point> res;
+    for (int i = 0; i < ts.size(); i++) {
+        Point p;
+        p.x = i;
+        p.y = ts[i].y/ts.size() + ts[i].im/ts.size();
+        res.push_back(p);
+    }
+    return res;
 }

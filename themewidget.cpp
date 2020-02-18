@@ -63,6 +63,7 @@
 #include <QtCharts/QBarCategoryAxis>
 #include <QtWidgets/QApplication>
 #include <QtCharts/QValueAxis>
+#include <QImageReader>
 
 ThemeWidget::ThemeWidget(QWidget *parent) :
     QWidget(parent),
@@ -153,7 +154,11 @@ void ThemeWidget::populateModeBox()
     m_ui->themeComboBox->addItem("In class eq filters 3", 24);
     m_ui->themeComboBox->addItem("In class eq filters 4 ver 2", 25);
     m_ui->themeComboBox->addItem("In class eq filters 5", 26);
-    m_ui->themeComboBox->addItem("In class eq filters 6", 27);
+    m_ui->themeComboBox->addItem("EXAM", 27);
+
+    m_ui->themeComboBox->addItem("Reverse cardio (new semester)", 28);
+    m_ui->themeComboBox->addItem("rw jpg", 29);
+    m_ui->themeComboBox->addItem("jpg correction", 30);
 
 }
 
@@ -315,6 +320,11 @@ const int IN_CLASS_FILTER3 = 24;
 const int IN_CLASS_FILTER4 = 25;
 const int IN_CLASS_FILTER5 = 26;
 const int IN_CLASS_FILTER6 = 27;
+
+// new semester
+const int REVERSE_CARDIO = 28;
+const int RW_JPG = 29;
+const int JPG_CORR = 30;
 
 void ThemeWidget::renderModeGraph() {
     //create charts
@@ -811,13 +821,157 @@ void ThemeWidget::renderInClassFilters5() {
     m_charts[3]->setChart(createChart(transform::transformTimeseriesForView(transform::ampSpecter(b)), "reverse spector", false));
 }
 
-//void ThemeWidget::renderInClassFilters6() {
-//    m_charts[0]->setChart(createChart(transform::transformTimeseriesForView(a), "aaaaa", false));
-//    m_charts[1]->setChart(createChart(transform::transformTimeseriesForView(b), "bbbb", false));
+void ThemeWidget::renderInClassFilters6() {
+    std::vector<Point> a = Model::fromFile("/home/matt/polytech/experimental data analysys/app/data.dat");
+    std::vector<Point> antiTrend = analysis::slideAvg(a, 6);
+    std::vector<Point> b = transform::additive(antiTrend, a, true);
+    std::vector<Point> c = transform::antiSpike(b, 25);
 
-//    m_charts[2]->setChart(createChart(transform::transformTimeseriesForView(c), "cccc", false));
-//    m_charts[3]->setChart(createChart(transform::transformTimeseriesForView(d), "dddd", false));
-//}
+    std::vector<Point> bp = transform::bandPassFilter(128, 0.001, 46, 56);
+    std::vector<Point> d = transform::convulation(b, bp, 1);
+
+
+    m_charts[0]->setChart(createChart(transform::transformTimeseriesForView(a), "aaaaa", false));
+    m_charts[1]->setChart(createChart(transform::transformTimeseriesForView(d), "bbbb", false));
+
+    m_charts[2]->setChart(createChart(transform::transformTimeseriesForView(transform::ampSpecter(a)), "cccc", false));
+    m_charts[3]->setChart(createChart(transform::transformTimeseriesForView(transform::ampSpecter(d)), "dddd", false));
+}
+
+void ThemeWidget::renderReverseCardio() {
+    std::vector<Point> a = Model::getRegularSpike(120.0, 0.005, 1000);
+    std::vector<Point> b = Model::getHeartbeat(0.005, 10, 200);
+    std::vector<Point> y = transform::convulation(a, b);
+
+    std::vector<Point> x = transform::addZeros(b, 1000);
+
+    std::vector<ComplexPoint> yy = transform::ampSpectorComplex(y, false);
+    std::vector<ComplexPoint> xx = transform::ampSpectorComplex(x, false);
+
+    std::vector<ComplexPoint> zz = transform::divideComplex(yy, xx);
+
+    std::vector<Point> res = transform::complextToPoint(zz);
+
+    m_charts[0]->setChart(createChart(transform::transformTimeseriesForView(y), "heart Beat", false));
+    m_charts[1]->setChart(createChart(transform::transformTimeseriesForView(res), "rev", false));
+
+    m_charts[2]->setChart(createChart(transform::transformTimeseriesForView(transform::reverseFourier(res)), "result", false));
+    m_charts[3]->setChart(createChart(transform::transformTimeseriesForView(transform::ampSpecter(x)), "hb", false));
+}
+
+void ThemeWidget::renderRWJpg() {
+    QImageReader reader("/home/matt/polytech/experimental data analysys/app/grace.jpg");
+    std::cout << reader.size().rwidth() << " " << reader.size().rheight() << std::endl;
+    QImage image = reader.read();
+//    QImage* resultImgae = new QImage(image.width(), image.height(), image.format());
+//    for (int x = 1; x < image.width()-1; x++) {
+//        for (int y = 1; y < image.height()-1; y++) {
+//            QColor l = image.pixelColor(x-1, y);
+//            QColor r = image.pixelColor(x+1, y);
+//            QColor u = image.pixelColor(x, y+1);
+//            QColor d = image.pixelColor(x, y-1);
+
+//            int red = l.red() + r.red() + u.red() + d.red();
+//            int green = l.green() + r.green() + u.green() + d.green();
+//            int blue = l.blue() + r.blue() + u.blue() + d.blue();
+//            QColor* res = new QColor(red / 4, green/4, blue/4);
+
+//            resultImgae->setPixelColor(x, y, *res);
+//        }
+//    }
+//    resultImgae->save("/home/matt/polytech/experimental data analysys/app/grace2.jpg");
+
+
+
+//    // scale up
+//    double delta = 2.7;
+//    QImage* resultImage = new QImage(image.width() *delta, image.height()*delta, image.format());
+//    for (int x = 1; x < resultImage->width()-1; x++) {
+//        for (int y = 1; y < resultImage->height()-1; y++) {
+//                        QColor l = image.pixelColor((x-1)/delta, y/delta);
+//                        QColor r = image.pixelColor((x+1)/delta, y/delta);
+//                        QColor u = image.pixelColor(x/delta, (y+1)/delta);
+//                        QColor d = image.pixelColor(x/delta, (y-1)/delta);
+
+//                        int red = l.red() + r.red() + u.red() + d.red();
+//                        int green = l.green() + r.green() + u.green() + d.green();
+//                        int blue = l.blue() + r.blue() + u.blue() + d.blue();
+//                        QColor* res = new QColor(red / 4, green/4, blue/4);
+
+//                        resultImage->setPixelColor(x, y, *res);
+
+//        }
+//    }
+//    resultImage->save("/home/matt/polytech/experimental data analysys/app/grace2.jpg");
+
+
+        // scale down
+        double delta = 0.7;
+        QImage* resultImage = new QImage(image.width() *delta, image.height()*delta, image.format());
+        for (int x = 1; x < resultImage->width()-1; x++) {
+            for (int y = 1; y < resultImage->height()-1; y++) {
+                            QColor l = image.pixelColor((x-1)/delta, y/delta);
+                            QColor r = image.pixelColor((x+1)/delta, y/delta);
+                            QColor u = image.pixelColor(x/delta, (y+1)/delta);
+                            QColor d = image.pixelColor(x/delta, (y-1)/delta);
+
+                            int red = l.red() + r.red() + u.red() + d.red();
+                            int green = l.green() + r.green() + u.green() + d.green();
+                            int blue = l.blue() + r.blue() + u.blue() + d.blue();
+                            QColor* res = new QColor(red / 4, green/4, blue/4);
+
+                            resultImage->setPixelColor(x, y, *res);
+
+            }
+        }
+        resultImage->save("/home/matt/polytech/experimental data analysys/app/grace3.jpg");
+}
+
+void ThemeWidget::renderJpgCorr() {
+    QImageReader reader1("/home/matt/polytech/experimental data analysys/app/image1.jpg");
+    std::cout << reader1.size().rwidth() << " " << reader1.size().rheight() << std::endl;
+    QImage image1 = reader1.read();
+
+
+    QImage* resultImage = new QImage(image1.width(), image1.height(), image1.format());
+        for (int x = 1; x < resultImage->width(); x++) {
+            for (int y = 1; y < resultImage->height(); y++) {
+                QColor c = image1.pixelColor(x, y);
+                c.setHsv(c.hsvHue(), c.hsvSaturation(),  int(30*pow(c.value(),0.3)) % 255);
+                resultImage->setPixelColor(x, y, c);
+            }
+        }
+
+
+
+    // gamma correction
+//    for (int x = 1; x < resultImage->width(); x++) {
+//        for (int y = 1; y < resultImage->height(); y++) {
+//            QColor c = image1.pixelColor(x, y);
+//            c.setHsv(c.hsvHue(), c.hsvSaturation(), 0.9*pow(c.value(),0.9));
+//            resultImage->setPixelColor(x, y, c);
+//        }
+//    }
+
+
+
+    // negative
+//    int maxL = 0;
+//    for (int x = 1; x < resultImage->width(); x++) {
+//        for (int y = 1; y < resultImage->height(); y++) {
+//                        int s = image1.pixelColor(x, y).value();
+//                        if (s > maxL) maxL = s;
+//        }
+//    }
+//    for (int x = 1; x < resultImage->width(); x++) {
+//        for (int y = 1; y < resultImage->height(); y++) {
+//             QColor c = image1.pixelColor(x, y);
+//             c.setHsv(c.hsvHue(), c.hsvSaturation(), abs(maxL - c.value()));
+//             resultImage->setPixelColor(x, y, c);
+//        }
+//    }
+    resultImage->save("/home/matt/polytech/experimental data analysys/app/image1-log.jpg");
+}
 
 
 void ThemeWidget::updateUI()
@@ -904,10 +1058,18 @@ void ThemeWidget::updateUI()
     case IN_CLASS_FILTER5:
         renderInClassFilters5();
         break;
-//    case IN_CLASS_FILTER6:
-//        renderInClassFilters6();
-//        break;
-
+    case IN_CLASS_FILTER6:
+        renderInClassFilters6();
+        break;
+    case REVERSE_CARDIO:
+        renderReverseCardio();
+        break;
+    case RW_JPG:
+        renderRWJpg();
+        break;
+    case JPG_CORR:
+        renderJpgCorr();
+        break;
     default:
         printf("Unknown mode %d\n", mode);
     }
