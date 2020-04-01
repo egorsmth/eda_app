@@ -96,6 +96,8 @@ private:
 
     void clearMode();
 
+    void charttts(QImage *image, QString filename);
+
     void renderModeGraph();
     void renderModeGraphStar();
     void renderModeInClass();
@@ -130,6 +132,11 @@ private:
     void renderReverseCardio();
     void renderRWJpg();
     void renderJpgCorr();
+    void renderJpgHist();
+    void renderFilterStrips();
+    void renderFilterStrips2();
+
+    void renderImageNoises();
 };
 
 

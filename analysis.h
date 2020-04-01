@@ -3,6 +3,7 @@
 
 #include <vector>
 #include "point.h"
+#include "themewidget.h"
 
 class analysis
 {
@@ -21,6 +22,12 @@ public:
     static double getCurtosis(std::vector<double> vals, double avg);
 
     static std::vector<Point> slideAvg(std::vector<Point> ts, int l);
+
+    static std::vector<Point> getRowValueDistribution(QImage* image, int row);
+
+    static double imageMean(QImage *image);
+    static double imageVariance(QImage *image);
+
 };
 
 #endif // ANALYSIS_H

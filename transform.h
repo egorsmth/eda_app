@@ -32,6 +32,19 @@ public:
     static std::vector<ComplexPoint> divideComplex(std::vector<ComplexPoint> xs, std::vector<ComplexPoint> ys);
     static std::vector<Point> complextToPoint(std::vector<ComplexPoint> ts);
 
+    static std::vector< std::vector<Point> > removeStrips(QImage* image, int resolution, double from, double to, QImage* image2);
+    static void betterBrightness(QImage* image, QImage* image1);
+
+    static QImage arithmeticMeanFilter(QImage* image, int m);
+    static QImage geometricMeanFilter(QImage* image, int m);
+    static QImage harmonicMeanFilter(QImage* image, int m);
+    static QImage medianFilter(QImage* image, int m);
+    static QImage midpointFilter(QImage* image, int m);
+    static QImage adaptiveMedianFilter(QImage* image, int max_m);
+    static QImage adaptiveArithmFilter(QImage* image, int max_m);
+
+    static QImage lowPassImageFilter(QImage* image, int m, double fc);
+    static QImage ddSpec(QImage* image);
 };
 
 #endif // TRANSFORM_H

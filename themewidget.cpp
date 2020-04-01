@@ -35,6 +35,7 @@
 #include <transform.h>
 #include <analysis.h>
 #include <audio.h>
+#include <random>
 
 
 #include <QtCharts/QChartView>
@@ -159,6 +160,10 @@ void ThemeWidget::populateModeBox()
     m_ui->themeComboBox->addItem("Reverse cardio (new semester)", 28);
     m_ui->themeComboBox->addItem("rw jpg", 29);
     m_ui->themeComboBox->addItem("jpg correction", 30);
+    m_ui->themeComboBox->addItem("jpg histogram", 31);
+    m_ui->themeComboBox->addItem("jpg strips filter", 32);
+    m_ui->themeComboBox->addItem("jpg BIG strips filter", 33);
+    m_ui->themeComboBox->addItem("jpg noises", 34);
 
 }
 
@@ -325,6 +330,10 @@ const int IN_CLASS_FILTER6 = 27;
 const int REVERSE_CARDIO = 28;
 const int RW_JPG = 29;
 const int JPG_CORR = 30;
+const int JPG_HIST = 31;
+const int JPG_STRIPS = 32;
+const int JPG_STRIPS2 = 33;
+const int JPG_NOISES = 34;
 
 void ThemeWidget::renderModeGraph() {
     //create charts
@@ -974,6 +983,479 @@ void ThemeWidget::renderJpgCorr() {
 }
 
 
+
+void ThemeWidget::renderJpgHist() {
+    QImageReader reader1("/home/matt/polytech/experimental data analysys/app/holywood.jpg");
+    std::cout << reader1.size().rwidth() << " " << reader1.size().rheight() << std::endl;
+    QImage image1 = reader1.read();
+
+    std::vector<int> hist(256);
+
+    QImage* resultImage = new QImage(image1.width(), image1.height(), image1.format());
+    long total = resultImage->width() * resultImage->height();
+        for (int x = 1; x < resultImage->width(); x++) {
+            for (int y = 1; y < resultImage->height(); y++) {
+                QColor c = image1.pixelColor(x, y);
+                hist[c.value()] += 1;
+            }
+        }
+    std::vector<double> cdf(256);
+    for (int j = 0; j < 256; j++) {
+        int t = hist[j];
+        if (j != 0) t += cdf[j - 1];
+
+        cdf[j] = double(t);
+    }
+    for (int j = 0; j < 256; j++) {
+
+
+        cdf[j] = (cdf[j] / total) * 255.0;
+    }
+
+    std::vector<Point> a;
+    for (int j = 0; j < 256; j++) {
+        Point p;
+        p.x = j;
+        p.y = hist[j];
+        a.push_back(p);
+    }
+
+    std::vector<Point> b;
+    for (int j = 0; j < 256; j++) {
+        Point p;
+        p.x = j;
+        p.y = cdf[j];
+        b.push_back(p);
+    }
+
+
+    m_charts[0]->setChart(createChart(transform::transformTimeseriesForView(a), "heart Beat", false));
+    m_charts[1]->setChart(createChart(transform::transformTimeseriesForView(b), "rev", false));
+
+    for (int x = 1; x < resultImage->width(); x++) {
+        for (int y = 1; y < resultImage->height(); y++) {
+                        QColor c = image1.pixelColor(x, y);
+                        c.setHsv(c.hsvHue(), c.hsvSaturation(), cdf[c.value()]);
+                        resultImage->setPixelColor(x, y, c);
+        }
+    }
+    resultImage->save("/home/matt/polytech/experimental data analysys/app/hol1.jpg");
+
+
+
+    std::vector<Point> c;
+    std::vector<int> cdf1(256);
+    for (int j = 0; j < 256; j++) {
+        cdf1[cdf[j]] = j;
+        Point p;
+        p.x = cdf[j];
+        p.y = j;
+        c.push_back(p);
+    }
+    for (int x = 1; x < resultImage->width(); x++) {
+        for (int y = 1; y < resultImage->height(); y++) {
+            QColor c = image1.pixelColor(x, y);
+            c.setHsv(c.hsvHue(), c.hsvSaturation(), cdf1[c.value()]);
+            resultImage->setPixelColor(x, y, c);
+        }
+    }
+    resultImage->save("/home/matt/polytech/experimental data analysys/app/hol2.jpg");
+    m_charts[2]->setChart(createChart(transform::transformTimeseriesForView(c), "rev", false));
+    m_charts[3]->setChart(createChart(transform::transformTimeseriesForView(c), "rev", false));
+
+}
+
+void ThemeWidget::renderFilterStrips() {
+    QImageReader reader1("/home/matt/polytech/experimental data analysys/app/xray.jpg");
+    std::cout << reader1.size().rwidth() << " " << reader1.size().rheight() << std::endl;
+    QImage image1 = reader1.read();
+
+    std::vector<Point> row;
+    for (int x = 0; x < image1.width(); x++) {
+        Point p;
+        p.x = x;
+        p.y = image1.pixelColor(x, 150).value();
+        row.push_back(p);
+    }
+
+    std::vector<Point> a = Model::getAutoCorrelartionFunc(row);
+    m_charts[0]->setChart(createChart(transform::transformTimeseriesForView(row), "raw", false));
+    m_charts[1]->setChart(createChart(transform::transformTimeseriesForView(a), "autocorrel", false));
+
+    std::vector<Point> q = transform::ampSpecter(a);
+    for (int i = 0; i < q.size(); i++) {
+        q[i].x = q[i].x / 256;
+    }
+    m_charts[3]->setChart(createChart(transform::transformTimeseriesForView(q), "spectr", false));
+
+    std::vector<Point> c = transform::bandStopFilter(4, 1, 0.1, 0.6);
+    std::vector<Point> d = transform::convulation(row, c);
+    m_charts[2]->setChart(createChart(transform::transformTimeseriesForView(d), "filtered", false));
+    QImage* resultImage = new QImage(image1.width(), image1.height(), image1.format());
+
+    for (int y = 0; y < resultImage->height(); y++) {
+        std::vector<Point> row;
+        for (int x = 0; x < resultImage->width(); x++) {
+            Point p;
+            p.x = x;
+            p.y = image1.pixelColor(x, y).value();
+            row.push_back(p);
+        }
+
+        std::vector<Point> row2 = transform::convulation(row, c);
+
+        for (int x = 0; x < resultImage->width(); x++) {
+            QColor c = image1.pixelColor(x, y);
+            c.setHsv(c.hsvHue(), c.hsvSaturation(), row2[x].y);
+            resultImage->setPixelColor(x, y, c);
+        }
+    }
+    resultImage->save("/home/matt/polytech/experimental data analysys/app/xray2.jpg");
+
+}
+
+void ThemeWidget::renderFilterStrips2() {
+    QImageReader reader1("/home/matt/polytech/experimental data analysys/app/XrayBig.jpg");
+    std::cout << reader1.size().rwidth() << " " << reader1.size().rheight() << std::endl;
+    QImage image1 = reader1.read();
+
+    QImage* image2 = new QImage(image1.width(), image1.height(), image1.format());
+    std::vector< std::vector<Point> > res1 = transform::removeStrips(&image1, 8, 0.000001, 250, image2);
+    image2->save("/home/matt/polytech/experimental data analysys/app/XrayBig1Strips.jpg");
+
+    m_charts[0]->setChart(createChart(transform::transformTimeseriesForView(res1[0]), "spec res1", false));
+    m_charts[1]->setChart(createChart(transform::transformTimeseriesForView(res1[1]), "conv res1", false));
+    QImage* image3 = new QImage(image1.width(), image1.height(), image1.format());
+    transform::betterBrightness(image2, image3);
+    image3->save("/home/matt/polytech/experimental data analysys/app/XrayBig2Bright.jpg");
+
+    QImage* image4 = new QImage(image1.width(), image1.height(), image1.format());
+    std::vector< std::vector<Point> > res2 = transform::removeStrips(image3, 4, 0.000001, 10, image4);
+    image4->save("/home/matt/polytech/experimental data analysys/app/XrayBig3Strips.jpg");
+
+    m_charts[2]->setChart(createChart(transform::transformTimeseriesForView(res2[0]), "spec res2", false));
+    m_charts[3]->setChart(createChart(transform::transformTimeseriesForView(res2[1]), "conv res2", false));
+}
+
+void ThemeWidget::charttts(QImage *image, QString filename) {
+
+    auto ch = createChart(transform::transformTimeseriesForView(analysis::getRowValueDistribution(image, 150)), "Distribution", false);
+    QChartView* chartView = new QChartView;
+    chartView->setRenderHint(QPainter::Antialiasing);
+    chartView->resize(900, 600);
+    chartView->setChart(ch);
+    chartView->grab().toImage().save(filename + "_CHART_DISTR.jpg");
+
+    std::vector<Point> a;
+        for (int x = 0; x < image->width(); x++)
+        {
+            Point p;
+            p.x = x;
+            p.y = image->pixelColor(x, 150).value();
+            a.push_back(p);
+        }
+
+    //auto ch2 = createChart(transform::transformTimeseriesForView(transform::ampSpecter(a, true, true, 1.0f/(double)image->width())), "Spectrum", false);
+    //QChartView* chartView2 = new QChartView;
+    //chartView2->setRenderHint(QPainter::Antialiasing);
+    //chartView2->resize(900, 600);
+    //chartView2->setChart(ch2);
+    //chartView2->grab().toImage().save(filename + "_CHART_SPECTR.jpg");
+}
+
+void ThemeWidget::renderImageNoises() {
+    QImageReader reader1("/home/matt/polytech/experimental data analysys/app/MODEL.jpg");
+    QImage image1 = reader1.read();
+    charttts(&image1, "/home/matt/polytech/experimental data analysys/app/MODEL");
+    m_charts[3]->setChart(createChart(transform::transformTimeseriesForView(analysis::getRowValueDistribution(&image1, 150)), "original", false));
+    std::vector<double> zs;
+
+    for (int y = 0; y < image1.height(); y++) {
+        for (int x = 0; x < image1.width(); x++) {
+            zs.push_back((double)image1.pixelColor(x, y).value());
+        }
+    }
+
+    double avg = analysis::getAverage(zs);
+    double var = sqrt(analysis::getVariance(zs, avg));
+
+    std::default_random_engine generator;
+    std::normal_distribution<double> distribution(0, var);
+
+    double level, min, max;
+    QImage* resultImage = new QImage(image1.width(), image1.height(), image1.format());
+    QImage r = transform::ddSpec(&image1);
+    r.save("/home/matt/polytech/experimental data analysys/app/fft_test.jpg");
+
+    level = 0.2;
+    for (int y = 0; y < resultImage->height(); y++) {
+        for (int x = 0; x < resultImage->width(); x++) {
+            QColor c = image1.pixelColor(x, y);
+            int v = c.value() + distribution(generator) * level;
+            if (v < 0) v = 0;
+            else if (v > 255) v = 255;
+            // std::cout << v << std::endl;
+            c.setHsv(c.hsvHue(), c.hsvSaturation(), v);
+            resultImage->setPixelColor(x, y, c);
+        }
+    }
+    QImage rr = transform::ddSpec(resultImage);
+    rr.save("/home/matt/polytech/experimental data analysys/app/fft_test_noise.jpg");
+#if 0
+
+    resultImage->save("/home/matt/polytech/experimental data analysys/app/1/normal_1%.jpg");
+    charttts(resultImage, "/home/matt/polytech/experimental data analysys/app/1/normal_1%");
+    QImage resultImage1 = transform::arithmeticMeanFilter(resultImage, 11);
+    m_charts[0]->setChart(createChart(transform::transformTimeseriesForView(analysis::getRowValueDistribution(resultImage, 150)), "with noise", false));
+    m_charts[1]->setChart(createChart(transform::transformTimeseriesForView(analysis::getRowValueDistribution(&resultImage1, 150)), "filtered", false));
+    resultImage1.save("/home/matt/polytech/experimental data analysys/app/1/normal_1%_arithmetic.jpg");
+    charttts(&resultImage1, "/home/matt/polytech/experimental data analysys/app/1/normal_1%_arithmetic");
+
+    QImage resultImage1_a = transform::geometricMeanFilter(resultImage, 11);
+    resultImage1_a.save("/home/matt/polytech/experimental data analysys/app/1/normal_1%_geometric.jpg");
+    charttts(&resultImage1_a, "/home/matt/polytech/experimental data analysys/app/1/normal_1%_geometric");
+
+    QImage resultImage1_b = transform::harmonicMeanFilter(resultImage, 11);
+    resultImage1_b.save("/home/matt/polytech/experimental data analysys/app/1/normal_1%_harmonic.jpg");
+    charttts(&resultImage1_b, "/home/matt/polytech/experimental data analysys/app/1/normal_1%_harmonic");
+
+    QImage resultImage1_c = transform::midpointFilter(resultImage, 5);
+    resultImage1_c.save("/home/matt/polytech/experimental data analysys/app/1/normal_1%_midpoint.jpg");
+    charttts(&resultImage1_c, "/home/matt/polytech/experimental data analysys/app/1/normal_1%_midpoint");
+
+    QImage resultImage1_d = transform::adaptiveMedianFilter(resultImage, 27);
+    resultImage1_d.save("/home/matt/polytech/experimental data analysys/app/1/normal_1%_adaptive_median.jpg");
+    charttts(&resultImage1_d, "/home/matt/polytech/experimental data analysys/app/1/normal_1%_adaptive_median");
+
+    QImage resultImage1_e = transform::adaptiveArithmFilter(resultImage, 27);
+    resultImage1_e.save("/home/matt/polytech/experimental data analysys/app/1/normal_1%_adaptive_arithm.jpg");
+    charttts(&resultImage1_e, "/home/matt/polytech/experimental data analysys/app/1/normal_1%_adaptive_arithm");
+
+    QImage resultImage1_f = transform::medianFilter(resultImage, 11);
+    resultImage1_f.save("/home/matt/polytech/experimental data analysys/app/1/normal_1%_median.jpg");
+    charttts(&resultImage1_f, "/home/matt/polytech/experimental data analysys/app/1/normal_1%_median");
+
+    QImage resultImage1_g = transform::lowPassImageFilter(resultImage, 32, 0.1);
+    resultImage1_g.save("/home/matt/polytech/experimental data analysys/app/1/normal_1%_lp.jpg");
+    charttts(&resultImage1_g, "/home/matt/polytech/experimental data analysys/app/1/normal_1%_lp");
+
+
+    level = 0.5;
+    for (int y = 0; y < resultImage->height(); y++) {
+        for (int x = 0; x < resultImage->width(); x++) {
+            QColor c = image1.pixelColor(x, y);
+            int v = c.value() + distribution(generator) * level;
+            if (v < 0) v = 0;
+            else if (v > 255) v = 255;
+            //std::cout << v << std::endl;
+            c.setHsv(c.hsvHue(), c.hsvSaturation(), v);
+            resultImage->setPixelColor(x, y, c);
+        }
+    }
+
+    resultImage->save("/home/matt/polytech/experimental data analysys/app/2/normal_5%.jpg");
+    charttts(resultImage, "/home/matt/polytech/experimental data analysys/app/2/normal_5%");
+
+    QImage resultImage2 = transform::arithmeticMeanFilter(resultImage, 9);
+    resultImage2.save("/home/matt/polytech/experimental data analysys/app/2/normal_5%_arithmetic.jpg");
+    charttts(&resultImage2, "/home/matt/polytech/experimental data analysys/app/2/normal_5%_arithmetic");
+
+    QImage resultImage2_a = transform::geometricMeanFilter(resultImage, 5);
+    resultImage2_a.save("/home/matt/polytech/experimental data analysys/app/2/normal_5%_geometric.jpg");
+    charttts(&resultImage2_a, "/home/matt/polytech/experimental data analysys/app/2/normal_5%_geometric");
+
+    QImage resultImage2_b = transform::harmonicMeanFilter(resultImage, 5);
+    resultImage2_b.save("/home/matt/polytech/experimental data analysys/app/2/normal_5%_harmonic.jpg");
+    charttts(&resultImage2_b, "/home/matt/polytech/experimental data analysys/app/2/normal_5%_harmonic");
+
+    QImage resultImage2_c = transform::midpointFilter(resultImage, 5);
+    resultImage2_c.save("/home/matt/polytech/experimental data analysys/app/2/normal_5%_midpoint.jpg");
+    charttts(&resultImage2_c, "/home/matt/polytech/experimental data analysys/app/2/normal_5%_midpoint");
+
+    QImage resultImage2_d = transform::adaptiveMedianFilter(resultImage, 25);
+    resultImage2_d.save("/home/matt/polytech/experimental data analysys/app/2/normal_5%_adaptive_median.jpg");
+    charttts(&resultImage1_d, "/home/matt/polytech/experimental data analysys/app/2/normal_5%_adaptive_median");
+
+    QImage resultImage2_e = transform::adaptiveArithmFilter(resultImage, 25);
+    resultImage2_e.save("/home/matt/polytech/experimental data analysys/app/2/normal_5%_adaptive_arithm.jpg");
+    charttts(&resultImage2_e, "/home/matt/polytech/experimental data analysys/app/2/normal_5%_adaptive_arithm");
+
+    QImage resultImage2_f = transform::medianFilter(resultImage, 3);
+    resultImage1_f.save("/home/matt/polytech/experimental data analysys/app/2/normal_5%_median.jpg");
+    charttts(&resultImage1_f, "/home/matt/polytech/experimental data analysys/app/2/normal_5%_median");
+
+    QImage resultImage2_g = transform::lowPassImageFilter(resultImage, 32, 0.06);
+    resultImage2_g.save("/home/matt/polytech/experimental data analysys/app/2/normal_5%_lp.jpg");
+    charttts(&resultImage2_g, "/home/matt/polytech/experimental data analysys/app/2/normal_5%_lp");
+
+
+    level = 1.2;
+    for (int y = 0; y < resultImage->height(); y++) {
+        for (int x = 0; x < resultImage->width(); x++) {
+            QColor c = image1.pixelColor(x, y);
+            int v = c.value() + distribution(generator) * level;
+            if (v < 0) v = 0;
+            else if (v > 255) v = 255;
+            // std::cout << v << std::endl;
+            c.setHsv(c.hsvHue(), c.hsvSaturation(), v);
+            resultImage->setPixelColor(x, y, c);
+        }
+    }
+
+    resultImage->save("/home/matt/polytech/experimental data analysys/app/3/normal_15%.jpg");
+    charttts(resultImage, "/home/matt/polytech/experimental data analysys/app/3/normal_15%");
+
+    QImage resultImage3 = transform::arithmeticMeanFilter(resultImage, 21);
+    resultImage3.save("/home/matt/polytech/experimental data analysys/app/3/normal_15%_arithmetic.jpg");
+    charttts(&resultImage3, "/home/matt/polytech/experimental data analysys/app/3/normal_15%_arithmetic");
+
+    QImage resultImage3_a = transform::geometricMeanFilter(resultImage, 3);
+    resultImage3_a.save("/home/matt/polytech/experimental data analysys/app/3/normal_15%_geometric.jpg");
+    charttts(&resultImage3_a, "/home/matt/polytech/experimental data analysys/app/3/normal_15%_geometric");
+
+    QImage resultImage3_b = transform::harmonicMeanFilter(resultImage, 3);
+    resultImage3_b.save("/home/matt/polytech/experimental data analysys/app/3/normal_15%_harmonic.jpg");
+    charttts(&resultImage3_b, "/home/matt/polytech/experimental data analysys/app/3/normal_15%_harmonic");
+
+    QImage resultImage3_c = transform::midpointFilter(resultImage, 5);
+    resultImage3_c.save("/home/matt/polytech/experimental data analysys/app/3/normal_15%_midpoint.jpg");
+    charttts(&resultImage3_c, "/home/matt/polytech/experimental data analysys/app/3/normal_15%_midpoint");
+
+    QImage resultImage3_d = transform::adaptiveMedianFilter(resultImage, 31);
+    resultImage3_d.save("/home/matt/polytech/experimental data analysys/app/3/normal_15%_adaptive_median.jpg");
+    charttts(&resultImage3_d, "/home/matt/polytech/experimental data analysys/app/3/normal_15%_adaptive_median");
+
+    QImage resultImage3_e = transform::adaptiveArithmFilter(resultImage, 31);
+    resultImage3_e.save("/home/matt/polytech/experimental data analysys/app/3/normal_15%_adaptive_arithm.jpg");
+    charttts(&resultImage3_e, "/home/matt/polytech/experimental data analysys/app/3/normal_15%_adaptive_arithm");
+
+    QImage resultImage3_f = transform::medianFilter(resultImage, 21);
+    resultImage3_f.save("/home/matt/polytech/experimental data analysys/app/3/normal_15%_median.jpg");
+    charttts(&resultImage3_f, "/home/matt/polytech/experimental data analysys/app/3/normal_15%_median");
+
+    QImage resultImage3_g = transform::lowPassImageFilter(resultImage, 32, 0.04);
+    resultImage3_g.save("/home/matt/polytech/experimental data analysys/app/3/normal_15%_lp.jpg");
+    charttts(&resultImage3_g, "/home/matt/polytech/experimental data analysys/app/3/normal_15%_lp");
+
+    max = 0, min = 255;
+    for (int x = 0; x < zs.size(); x++) {
+        if (zs[x] > max) max = zs[x];
+        if (zs[x] < min) min = zs[x];
+    }
+
+    for (int y = 0; y < resultImage->height(); y++) {
+        for (int x = 0; x < resultImage->width(); x++) {
+            QColor c = image1.pixelColor(x, y);
+            int v = rand() < RAND_MAX/20 ? (rand() > RAND_MAX/2 ? max : min) : c.value();
+            c.setHsv(c.hsvHue(), c.hsvSaturation(), v);
+            resultImage->setPixelColor(x, y, c);
+        }
+    }
+
+    resultImage->save("/home/matt/polytech/experimental data analysys/app/4/impulse.jpg");
+    charttts(resultImage, "/home/matt/polytech/experimental data analysys/app/4/impulse");
+
+    QImage resultImage4 = transform::arithmeticMeanFilter(resultImage, 11);
+    resultImage4.save("/home/matt/polytech/experimental data analysys/app/4/impulse_arithmetic.jpg");
+    charttts(&resultImage4, "/home/matt/polytech/experimental data analysys/app/4/impulse_arithmetic");
+
+    QImage resultImage4_a = transform::geometricMeanFilter(resultImage, 9);
+    resultImage4_a.save("/home/matt/polytech/experimental data analysys/app/4/impulse_geometric.jpg");
+    charttts(&resultImage4_a, "/home/matt/polytech/experimental data analysys/app/4/impulse_geometric");
+
+    QImage resultImage4_b = transform::harmonicMeanFilter(resultImage, 9);
+    resultImage4_b.save("/home/matt/polytech/experimental data analysys/app/4/impulse_harmonic.jpg");
+    charttts(&resultImage4_b, "/home/matt/polytech/experimental data analysys/app/4/impulse_harmonic");
+
+    QImage resultImage4_c = transform::midpointFilter(resultImage, 5);
+    resultImage4_c.save("/home/matt/polytech/experimental data analysys/app/4/impulse_midpoint.jpg");
+    charttts(&resultImage4_c, "/home/matt/polytech/experimental data analysys/app/4/impulse_midpoint");
+
+    QImage resultImage4_d = transform::adaptiveMedianFilter(resultImage, 21);
+    resultImage4_d.save("/home/matt/polytech/experimental data analysys/app/4/impulse_adaptive_median.jpg");
+    charttts(&resultImage4_d, "/home/matt/polytech/experimental data analysys/app/4/impulse_adaptive_median");
+
+    QImage resultImage4_e = transform::adaptiveArithmFilter(resultImage, 15);
+    resultImage4_e.save("/home/matt/polytech/experimental data analysys/app/4/impulse_adaptive_arithm.jpg");
+    charttts(&resultImage4_e, "/home/matt/polytech/experimental data analysys/app/4/impulse_adaptive_arithm");
+
+    QImage resultImage4_f = transform::medianFilter(resultImage, 7);
+    resultImage4_f.save("/home/matt/polytech/experimental data analysys/app/4/impulse_median.jpg");
+    charttts(&resultImage4_f, "/home/matt/polytech/experimental data analysys/app/4/impulse_median");
+
+    QImage resultImage4_g = transform::lowPassImageFilter(resultImage, 32, 0.08);
+    resultImage4_g.save("/home/matt/polytech/experimental data analysys/app/4/impulse_lp.jpg");
+    charttts(&resultImage4_g, "/home/matt/polytech/experimental data analysys/app/4/impulse_lp");
+
+    level = 1.2;
+    for (int y = 0; y < resultImage->height(); y++) {
+        for (int x = 0; x < resultImage->width(); x++) {
+            QColor c = image1.pixelColor(x, y);
+            int v = c.value() + distribution(generator) * level;
+            if (v < 0) v = 0;
+            else if (v > 255) v = 255;
+            // std::cout << v << std::endl;
+            c.setHsv(c.hsvHue(), c.hsvSaturation(), v);
+            resultImage->setPixelColor(x, y, c);
+        }
+    }
+    max = 0, min = 255;
+    for (int y = 0; y < resultImage->height(); y++) {
+        for (int x = 0; x < resultImage->width(); x++) {
+            QColor c = resultImage->pixelColor(x, y);
+            int v = c.value();
+            if (v > max) max = v;
+            if (v < min) min = v;
+        }
+    }
+
+    for (int y = 0; y < resultImage->height(); y++) {
+        for (int x = 0; x < resultImage->width(); x++) {
+            QColor c = resultImage->pixelColor(x, y);
+            int v = rand() < RAND_MAX/20 ? (rand() > RAND_MAX/2 ? max : min) : c.value();
+            c.setHsv(c.hsvHue(), c.hsvSaturation(), v);
+            resultImage->setPixelColor(x, y, c);
+        }
+    }
+
+    resultImage->save("/home/matt/polytech/experimental data analysys/app/5/normal_15%+impulse.jpg");
+    charttts(resultImage, "/home/matt/polytech/experimental data analysys/app/normal_15%+impulse");
+
+    QImage resultImage7 = transform::arithmeticMeanFilter(resultImage, 15);
+    resultImage7.save("/home/matt/polytech/experimental data analysys/app/5/normal_15%+impulse_arithmetic.jpg");
+    charttts(&resultImage7, "/home/matt/polytech/experimental data analysys/app/5/normal_15%+impulse_arithmetic");
+
+    QImage resultImage7_a = transform::geometricMeanFilter(resultImage, 3);
+    resultImage7_a.save("/home/matt/polytech/experimental data analysys/app/5/normal_15%+impulse_geometric.jpg");
+    charttts(&resultImage7_a, "/home/matt/polytech/experimental data analysys/app/5/normal_15%+impulse_geometric");
+
+    QImage resultImage7_b = transform::harmonicMeanFilter(resultImage, 3);
+    resultImage7_b.save("/home/matt/polytech/experimental data analysys/app/5/normal_15%+impulse_harmonic.jpg");
+    charttts(&resultImage7_b, "/home/matt/polytech/experimental data analysys/app/5/normal_15%+impulse_harmonic");
+
+    QImage resultImage7_c = transform::midpointFilter(resultImage, 3);
+    resultImage7_c.save("/home/matt/polytech/experimental data analysys/app/5/normal_15%+impulse_midpoint.jpg");
+    charttts(&resultImage7_c, "/home/matt/polytech/experimental data analysys/app/5/normal_15%+impulse_midpoint");
+
+    QImage resultImage7_d = transform::adaptiveMedianFilter(resultImage, 31);
+    resultImage7_d.save("/home/matt/polytech/experimental data analysys/app/5/normal_15%+impuls_adaptive_median.jpg");
+    charttts(&resultImage7_d, "/home/matt/polytech/experimental data analysys/app/5/normal_15%+impuls_adaptive_median");
+
+    QImage resultImage7_e = transform::adaptiveArithmFilter(resultImage, 31);
+    resultImage7_e.save("/home/matt/polytech/experimental data analysys/app/5/normal_15%+impuls_adaptive_arithm.jpg");
+    charttts(&resultImage7_e, "/home/matt/polytech/experimental data analysys/app/5/normal_15%+impuls_adaptive_arithm");
+
+    QImage resultImage7_f = transform::medianFilter(resultImage, 15);
+    resultImage7_f.save("/home/matt/polytech/experimental data analysys/app/5/normal_15%+impuls_median.jpg");
+    charttts(&resultImage7_f, "/home/matt/polytech/experimental data analysys/app/5/normal_15%+impuls_median");
+
+    QImage resultImage7_g = transform::lowPassImageFilter(resultImage, 32, 0.15);
+    resultImage7_g.save("/home/matt/polytech/experimental data analysys/app/5/normal_15%+impulse_lp.jpg");
+    charttts(&resultImage7_g, "/home/matt/polytech/experimental data analysys/app/5/normal_15%+impulse_lp");
+#endif
+}
+
+
 void ThemeWidget::updateUI()
 {
     int mode = m_ui->themeComboBox->itemData(m_ui->themeComboBox->currentIndex()).toInt();
@@ -1069,6 +1551,18 @@ void ThemeWidget::updateUI()
         break;
     case JPG_CORR:
         renderJpgCorr();
+        break;
+    case JPG_HIST:
+        renderJpgHist();
+        break;
+    case JPG_STRIPS:
+        renderFilterStrips();
+        break;
+    case JPG_STRIPS2:
+        renderFilterStrips2();
+        break;
+    case JPG_NOISES:
+        renderImageNoises();
         break;
     default:
         printf("Unknown mode %d\n", mode);

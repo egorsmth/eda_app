@@ -127,4 +127,65 @@ std::vector<Point> analysis::slideAvg(std::vector<Point> ts, int l) {
    return res;
 }
 
+std::vector<Point> analysis::getRowValueDistribution(QImage* image, int row) {
+    std::map<int, int> temp;
+    for (int x = 0; x < image->width(); x ++) {
+        for (int y = 0; y < image->height(); y ++) {
+            QColor c = image->pixelColor(x, y);
+            if (temp.find(c.value()) == temp.end()) temp[c.value()] = 0;
+            temp[c.value()] += 1;
+        }
 
+    }
+
+    std::vector<Point> res;
+    for (std::map<int,int>::iterator it=temp.begin(); it!=temp.end(); ++it) {
+        Point p;
+        p.x = it->first;
+        p.y = it->second;
+        res.push_back(p);
+    }
+
+    return res;
+}
+
+std::map<int, double> imgHist(QImage *image) {
+    std::map<int, double> temp;
+    for (int x = 0; x < image->width(); x ++) {
+        for (int y = 0; y < image->height(); y ++) {
+            QColor c = image->pixelColor(x, y);
+            if (temp.find(c.value()) == temp.end()) temp[c.value()] = 0.0;
+            temp[c.value()] += 1.0;
+        }
+    }
+
+    for (std::map<int,double>::iterator it=temp.begin(); it!=temp.end(); ++it) {
+        it->second = it->second/(image->width() * image->height());
+    }
+    return temp;
+}
+
+double analysis::imageMean(QImage *image) {
+    std::map<int, double> temp = imgHist(image);
+    double mean = 0;
+    for (int x = 0; x < image->width(); x ++) {
+        for (int y = 0; y < image->height(); y ++) {
+            QColor c = image->pixelColor(x, y);
+            mean += (double)c.value() * temp[c.value()];
+        }
+    }
+    return mean;
+}
+
+double analysis::imageVariance(QImage *image) {
+    double mean = imageMean(image);
+    std::map<int, double> temp = imgHist(image);
+
+    for (int x = 0; x < image->width(); x ++) {
+        for (int y = 0; y < image->height(); y ++) {
+            QColor c = image->pixelColor(x, y);
+            mean += pow((double)c.value() - mean, 2.0) * temp[c.value()];
+        }
+    }
+    return mean;
+}
